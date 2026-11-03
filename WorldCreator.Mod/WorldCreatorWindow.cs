@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace WorldCreator.Mod
 {
-    public sealed class WorldCreatorWindow : MonoBehaviour
+    public sealed partial class WorldCreatorWindow : MonoBehaviour
     {
         private const float CardSpacing = 20f;
         private const float ScrollContentRightPadding = 36f;
@@ -74,6 +74,7 @@ namespace WorldCreator.Mod
         private bool _temperatureScaleTopEditing;
         private readonly Dictionary<string, string> _temperatureValueDrafts = new Dictionary<string, string>(StringComparer.Ordinal);
         private int _weatherSelection;
+        private int _savedWeatherSelection;
         private int _startConditionSelection;
         private int _newStartEventSelection;
         private string _newStartSpawnId = "DefaultNewPlayer";
@@ -97,7 +98,7 @@ namespace WorldCreator.Mod
         private string _newWeatherName = "My Weather Effect";
         private int _pendingTemplate = -1;
         private string? _pendingLoadPath;
-        private string? _pendingWeatherArchiveId;
+        private string? _pendingWeatherDeleteId;
         private readonly List<(string Path, string Name)> _loadChoices = new List<(string, string)>();
         private int _loadSelection;
         private int _presetSelection = -1;
@@ -297,13 +298,13 @@ namespace WorldCreator.Mod
                 if (_pendingPage >= 0) { _page = _pendingPage; _pendingPage = -1; }
             }
             GUI.Window(904521, _window, DrawWindow, GUIContent.none, _windowStyle!);
-            if (_pendingTemplate >= 0 || _pendingLoadPath != null || _pendingClose || _pendingWeatherArchiveId != null)
+            if (_pendingTemplate >= 0 || _pendingLoadPath != null || _pendingClose || _pendingWeatherDeleteId != null)
             {
                 CloseNativePopup();
                 var margin = Mathf.Clamp(Mathf.Min(Screen.width, Screen.height) * 0.025f, 8f, 32f);
                 var dialogWidth = Mathf.Min(460f, Mathf.Max(1f, Screen.width - margin * 2f));
                 var dialogHeight = Mathf.Min(170f, Mathf.Max(1f, Screen.height - margin * 2f));
-                GUI.ModalWindow(904522, new Rect((Screen.width - dialogWidth) / 2f, (Screen.height - dialogHeight) / 2f, dialogWidth, dialogHeight), DrawDiscardDialog, _pendingWeatherArchiveId != null ? "Remove saved weather effect?" : _pendingClose ? "Leave editor?" : "Replace current settings?", _dialogStyle!);
+                GUI.ModalWindow(904522, new Rect((Screen.width - dialogWidth) / 2f, (Screen.height - dialogHeight) / 2f, dialogWidth, dialogHeight), DrawDiscardDialog, _pendingWeatherDeleteId != null ? "Delete saved weather effect?" : _pendingClose ? "Leave editor?" : "Replace current settings?", _dialogStyle!);
             }
             if (_nativePopupOpen != null) DrawNativePopup(_nativePopupOpen, _nativePopupOptions, _nativePopupCurrentSelected);
             DrawHoverTooltip(string.IsNullOrWhiteSpace(_hoverTooltip) ? GUI.tooltip : _hoverTooltip);
@@ -320,16 +321,16 @@ namespace WorldCreator.Mod
                 _discardConfirmed = false;
                 var nextTemplate = _pendingTemplate;
                 var nextLoadPath = _pendingLoadPath;
-                var archiveWeatherId = _pendingWeatherArchiveId;
+                var deleteWeatherId = _pendingWeatherDeleteId;
                 var close = _pendingClose;
                 _pendingTemplate = -1;
                 _pendingLoadPath = null;
-                _pendingWeatherArchiveId = null;
+                _pendingWeatherDeleteId = null;
                 _pendingClose = false;
                 if (close) { _pendingScreen = 0; }
                 else if (nextTemplate >= 0) ApplyOriginalWorld(nextTemplate);
                 else if (nextLoadPath != null) LoadWorld(nextLoadPath);
-                else if (archiveWeatherId != null) { try { WeatherEffectLibrary.Archive(archiveWeatherId); _status = "Removed the saved copy. Effects already added to the current project are unchanged."; } catch (Exception e) { _status = e.Message; } }
+                else if (deleteWeatherId != null) { try { WeatherEffectLibrary.Delete(deleteWeatherId); _status = "Deleted the saved effect. Effects already added to this project are unchanged."; } catch (Exception e) { _status = e.Message; } }
             }
         }
 
@@ -437,19 +438,19 @@ namespace WorldCreator.Mod
 
         private void DrawDiscardDialog(int windowId)
         {
-            GUILayout.Label(_pendingWeatherArchiveId != null
-                ? "Move this effect out of your reusable weather library? A copy already added to this project will remain."
+            GUILayout.Label(_pendingWeatherDeleteId != null
+                ? "Delete this effect from your saved weather library? A copy already added to this project will remain."
                 : _pendingClose
                     ? "Return to the World Creator start page? Any edits in this project will be discarded."
                     : "Replace the current settings with this selection? Any edits in this project will be discarded.");
             GUILayout.FlexibleSpace();
             GUILayout.BeginHorizontal();
-            if (NativeButton(_pendingWeatherArchiveId != null ? "Remove saved effect" : _pendingClose ? "Back to start page" : "Replace settings", _primaryButtonStyle!, GUILayout.Height(32))) _discardConfirmed = true;
+            if (NativeButton(_pendingWeatherDeleteId != null ? "Delete saved effect" : _pendingClose ? "Back to start page" : "Replace settings", _primaryButtonStyle!, GUILayout.Height(32))) _discardConfirmed = true;
             if (NativeButton("Keep editing", _buttonStyle!, GUILayout.Height(32)))
             {
                 _pendingTemplate = -1;
                 _pendingLoadPath = null;
-                _pendingWeatherArchiveId = null;
+                _pendingWeatherDeleteId = null;
                 _pendingClose = false;
             }
             GUILayout.EndHorizontal();
@@ -836,6 +837,8 @@ namespace WorldCreator.Mod
                 GUILayout.Space(CardSpacing);
                 DrawTemperatureChart();
                 GUILayout.Space(CardSpacing);
+                DrawClimatePreview();
+                GUILayout.Space(CardSpacing);
                 DrawCurveKeyEditor(_project.AtmosphereFields, "Atmosphere");
                 GUILayout.Space(CardSpacing);
                 DrawWorldEnvironmentCard();
@@ -845,8 +848,13 @@ namespace WorldCreator.Mod
                 DrawWeatherControls();
                 GUILayout.Space(CardSpacing);
                 GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
-                GUILayout.Label("EVENT SCHEDULING", _sectionStyle!);
+                GUILayout.Label("WORLD WEATHER TIMING", _sectionStyle!);
                 DrawWeatherTimeline();
+                GUILayout.EndVertical();
+                GUILayout.Space(CardSpacing);
+                GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
+                GUILayout.Label("WEATHER EFFECT SETTINGS", _sectionStyle!);
+                GUILayout.Label("Each event added to this world has its own editable settings card below. Use the Installed Weather or My Saved Weather cards above to add or remove events.", _mutedStyle!);
                 GUILayout.EndVertical();
                 GUILayout.Space(CardSpacing);
                 DrawCurveKeyEditor(_project.WeatherFields, "Weather");
@@ -1193,7 +1201,7 @@ namespace WorldCreator.Mod
                 var isSolar = curvePath.IndexOf("SolarRadiationTemperature", StringComparison.OrdinalIgnoreCase) >= 0;
                 var isGreenhouse = curvePath.IndexOf("GHGTemperatureOffset", StringComparison.OrdinalIgnoreCase) >= 0;
                 var isDensity = curvePath.IndexOf("DensityOffset", StringComparison.OrdinalIgnoreCase) >= 0;
-                var timeLabel = isBaseTemperature ? "Solar angle (°)" : isSolar ? "Irradiance position (0–100)" : isGreenhouse ? "Greenhouse index" : isDensity ? "Gas density (mmol/L)" : "Curve input";
+                var timeLabel = isBaseTemperature ? "Solar angle (°)" : isSolar ? "Relative sunlight level (0–100)" : isGreenhouse ? "Greenhouse index" : isDensity ? "Gas density (mmol/L)" : "Curve input";
                 var valueLabel = isBaseTemperature ? "Temperature (K)" : isSolar || isGreenhouse || isDensity ? "Temperature offset (K)" : "Curve value";
                 var curveTitle = isBaseTemperature ? "Baseline temperature by sun angle" :
                     isSolar ? "Solar-radiation offset · " + CurveSide(curvePath) :
@@ -1218,9 +1226,16 @@ namespace WorldCreator.Mod
                     return;
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label(section == "Atmosphere"
-                    ? "Edit the meaningful input and output only. Unity interpolation tangents and weights remain in Advanced XML and are preserved."
-                    : "Edit curve input and output using the units shown. Unity interpolation tangents and weights remain in Advanced XML and are preserved.", _mutedStyle!);
+                var curveDescription = isBaseTemperature
+                    ? "Sets the baseline surface temperature at each sun angle: 0° is overhead, 90° is the horizon, and 180° is night. The game blends between points; other temperature offsets are separate."
+                    : isSolar
+                        ? "Adds a day or night temperature offset based on the orbit's calculated sunlight level. The input runs across that orbit's irradiance range; it is not a clock time."
+                        : isGreenhouse
+                            ? "Adds a day or night temperature offset based on the atmosphere's greenhouse index. The game blends between the points."
+                            : isDensity
+                                ? "Adds a day or night temperature offset based on atmospheric gas density. The game blends between the points."
+                                : "Edit the curve input and output using the units shown. The game blends between points.";
+                GUILayout.Label(curveDescription, _mutedStyle!);
                 var keyCount = curve.Count();
                 foreach (var key in curve.OrderBy(k => k.Index))
                 {
@@ -1519,7 +1534,8 @@ namespace WorldCreator.Mod
             GUILayout.BeginHorizontal();
             GUILayout.Label(new GUIContent("Pressure estimate at temperature (K)  ⓘ", "This reference temperature is used only for the ideal-gas pressure estimate shown here; it does not change the world's temperature curve."), _mutedStyle!);
             _referenceTemperature = TooltipTextField(_referenceTemperature, "Reference temperature for the ideal-gas estimate only. This field does not change world settings.", 100, 26, numeric: true);
-            if (double.TryParse(_referenceTemperature, NumberStyles.Float, CultureInfo.InvariantCulture, out var temperature) && temperature > 0 && !double.IsInfinity(temperature))
+            var pressureLabel = "- kPa";
+            if (double.TryParse(_referenceTemperature, NumberStyles.Float, CultureInfo.InvariantCulture, out var temperature) && temperature > 0 && !double.IsNaN(temperature) && !double.IsInfinity(temperature))
             {
                 var total = 0d;
                 var valid = true;
@@ -1530,10 +1546,11 @@ namespace WorldCreator.Mod
                     if (!double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var quantity) || quantity < 0 || double.IsNaN(quantity) || double.IsInfinity(quantity)) { valid = false; break; }
                     if (!gas.IsLiquid) total += quantity;
                 }
-                GUILayout.Label(valid ? "~" + (total * 8.314462618 * temperature / 8000).ToString("0.##", CultureInfo.InvariantCulture) + " kPa (gaseous species only)" : "Estimate unavailable for this mixture");
+                if (valid) pressureLabel = "~" + (total * 8.314462618 * temperature / 8000).ToString("0.##", CultureInfo.InvariantCulture) + " kPa (gas-phase estimate)";
             }
+            GUILayout.Label(pressureLabel);
             GUILayout.EndHorizontal();
-            GUILayout.Label("This ideal-gas estimate excludes liquid species. Real pressure also depends on phase changes and the game's atmosphere simulation.");
+            GUILayout.Label("The ideal-gas estimate includes gases and excludes liquid entries. Actual pressure also depends on temperature, phase changes, and the game's atmosphere simulation.");
             DrawGasComposition();
         }
 
@@ -1602,56 +1619,78 @@ namespace WorldCreator.Mod
 
         private void DrawWeatherControls()
         {
-            var options = _project!.WeatherOptions.ToArray();
+            var project = _project!;
+            var installed = project.WeatherOptions.Where(id => !project.IsUserWeather(id)).ToArray();
+            var installedLabels = installed.Select(project.WeatherName).ToArray();
+
             GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
-            GUILayout.Label("WEATHER EVENTS", _sectionStyle!);
-            GUILayout.Label("Add installed events, create a new effect, or reuse one saved for future projects.", _mutedStyle!);
-            if (options.Length > 0)
+            GUILayout.Label("INSTALLED WEATHER", _sectionStyle!);
+            GUILayout.Label("Choose a game or world-mod event to add to this world. Removing it here never deletes its installed definition.", _mutedStyle!);
+            if (installed.Length == 0) GUILayout.Label("No installed weather events were found.", _mutedStyle!);
+            else
             {
-                _weatherSelection = Math.Min(_weatherSelection, options.Length - 1);
-                GUILayout.Label("Installed and saved effects");
-                var optionLabels = options.Select(_project.WeatherName).ToArray();
-                _weatherSelection = NativeSelectionGrid(_weatherSelection, optionLabels, 3);
-                var selected = options[_weatherSelection];
-                var selectedName = _project.WeatherName(selected);
+                _weatherSelection = Mathf.Clamp(_weatherSelection, 0, installed.Length - 1);
                 GUILayout.BeginHorizontal();
-                if (NativeButton((_project.HasWeather(selected) ? "Remove " : "Add ") + selectedName, _buttonStyle!))
+                _weatherSelection = NativeDropdown("installed-weather", _weatherSelection, installedLabels, _buttonStyle!, GUILayout.Width(300));
+                var selected = installed[Mathf.Clamp(_weatherSelection, 0, installed.Length - 1)];
+                var selectedName = project.WeatherName(selected);
+                if (NativeButton(project.HasWeather(selected) ? "Remove from world" : "Add to world", _primaryButtonStyle!, GUILayout.Width(170)))
                 {
                     try
                     {
-                        if (_project.HasWeather(selected)) _project.RemoveWeather(selected); else _project.AddWeather(selected);
-                        _status = (_project.HasWeather(selected) ? "Added " : "Removed ") + selectedName + ".";
+                        if (project.HasWeather(selected)) project.RemoveWeather(selected); else project.AddWeather(selected);
+                        _status = (project.HasWeather(selected) ? "Added " : "Removed ") + selectedName + (project.HasWeather(selected) ? " to this world." : " from this world.");
                     }
                     catch (Exception e) { _status = e.Message; }
                 }
                 GUILayout.EndHorizontal();
             }
-            GUILayout.Space(10);
-            GUILayout.Label("CREATE A WEATHER EFFECT", _sectionStyle!);
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("ID", GUILayout.Width(35)); _newWeatherId = GUILayout.TextField(_newWeatherId, _inputStyle!);
-            GUILayout.Label("Name", GUILayout.Width(45)); _newWeatherName = GUILayout.TextField(_newWeatherName, _inputStyle!);
-            if (NativeButton("Create blank", _primaryButtonStyle!, GUILayout.Width(130)))
-                try { _project.CreateWeather(_newWeatherId.Trim(), _newWeatherName.Trim()); _status = "Created weather effect. Add visual/audio blocks, adjust its values, then save it to your library."; }
-                catch (Exception e) { _status = e.Message; }
-            if (options.Length > 0 && NativeButton("Create from selected", _buttonStyle!, GUILayout.Width(170)))
-                try { _project.CreateWeather(_newWeatherId.Trim(), _newWeatherName.Trim(), options[Mathf.Clamp(_weatherSelection, 0, options.Length - 1)]); _status = "Created a custom effect from the selected event. Its values can now be edited independently."; }
-                catch (Exception e) { _status = e.Message; }
-            GUILayout.EndHorizontal();
-            GUILayout.Label("IDs must start with WCWeather_. Blank effects include default timing, fog, temperature, wind, solar and movement values.", _mutedStyle!);
-            GUILayout.Label("SAVED FOR FUTURE PROJECTS", _sectionStyle!);
-            var saved = _project.SavedWeatherEffects;
-            if (saved.Count == 0) GUILayout.Label("No saved effects yet. Save a custom effect to keep it in your personal weather library.", _mutedStyle!);
-            foreach (var effect in saved)
+            GUILayout.EndVertical();
+
+            GUILayout.Space(CardSpacing);
+            GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
+            GUILayout.Label("MY SAVED WEATHER", _sectionStyle!);
+            GUILayout.Label("Your custom effects are saved on this computer and remain available after restarting the game. Built-in presets cannot be deleted here.", _mutedStyle!);
+            var saved = project.SavedWeatherEffects;
+            if (saved.Count == 0) GUILayout.Label("No saved effects yet. Create an effect, edit its card, then choose Save to My Weather.", _mutedStyle!);
+            else
             {
+                _savedWeatherSelection = Mathf.Clamp(_savedWeatherSelection, 0, saved.Count - 1);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(effect.Name + "  ·  " + effect.Id, _mutedStyle!);
-                if (NativeButton(_project.HasWeather(effect.Id) ? "Added" : "Add to world", _buttonStyle!, GUILayout.Width(130)) && !_project.HasWeather(effect.Id))
-                    try { _project.AddWeather(effect.Id); _status = "Added saved effect " + effect.Name + " to this project."; } catch (Exception e) { _status = e.Message; }
-                if (NativeButton("Remove saved copy", _buttonStyle!, GUILayout.Width(150))) _pendingWeatherArchiveId = effect.Id;
+                var savedLabels = saved.Select(effect => effect.Name + "  ·  " + effect.Id).ToArray();
+                _savedWeatherSelection = NativeDropdown("saved-weather", _savedWeatherSelection, savedLabels, _buttonStyle!, GUILayout.Width(360));
+                var selectedSaved = saved[Mathf.Clamp(_savedWeatherSelection, 0, saved.Count - 1)];
+                if (NativeButton(project.HasWeather(selectedSaved.Id) ? "Remove from world" : "Add to world", _primaryButtonStyle!, GUILayout.Width(170)))
+                {
+                    try
+                    {
+                        if (project.HasWeather(selectedSaved.Id)) project.RemoveWeather(selectedSaved.Id); else project.AddWeather(selectedSaved.Id);
+                        _status = (project.HasWeather(selectedSaved.Id) ? "Added " : "Removed ") + selectedSaved.Name + (project.HasWeather(selectedSaved.Id) ? " to this world." : " from this world.");
+                    }
+                    catch (Exception e) { _status = e.Message; }
+                }
+                if (NativeButton("Delete saved effect", _buttonStyle!, GUILayout.Width(175))) _pendingWeatherDeleteId = selectedSaved.Id;
                 GUILayout.EndHorizontal();
             }
-            GUILayout.Label("The library is stored in Documents\\My Games\\Stationeers\\WorldCreator\\WeatherLibrary and is separate from project exports. Save a custom event from its card below.", _mutedStyle!);
+            GUILayout.EndVertical();
+
+            GUILayout.Space(CardSpacing);
+            GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
+            GUILayout.Label("CREATE WEATHER EFFECT", _sectionStyle!);
+            GUILayout.Label("Create a blank event or copy an installed event as a starting point. The new effect is independent and can be edited below.", _mutedStyle!);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Weather ID", _mutedStyle!, GUILayout.Width(72)); _newWeatherId = GUILayout.TextField(_newWeatherId, _inputStyle!, GUILayout.MinWidth(180), GUILayout.ExpandWidth(true));
+            GUILayout.Label("Display name", _mutedStyle!, GUILayout.Width(88)); _newWeatherName = GUILayout.TextField(_newWeatherName, _inputStyle!, GUILayout.MinWidth(150), GUILayout.ExpandWidth(true));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (NativeButton("Create blank effect", _primaryButtonStyle!, GUILayout.Width(180)))
+                try { project.CreateWeather(_newWeatherId.Trim(), _newWeatherName.Trim()); _status = "Created a blank weather effect. Edit its card below, then save it to My Weather if you want to reuse it."; }
+                catch (Exception e) { _status = e.Message; }
+            if (installed.Length > 0 && NativeButton("Copy selected event", _buttonStyle!, GUILayout.Width(175)))
+                try { project.CreateWeather(_newWeatherId.Trim(), _newWeatherName.Trim(), installed[Mathf.Clamp(_weatherSelection, 0, installed.Length - 1)]); _status = "Copied the selected event into an independent custom effect."; }
+                catch (Exception e) { _status = e.Message; }
+            GUILayout.EndHorizontal();
+            GUILayout.Label("Weather IDs must start with WCWeather_. Blank effects get default timing, atmosphere, wind, and movement settings.", _mutedStyle!);
             GUILayout.EndVertical();
         }
 
@@ -1975,12 +2014,12 @@ namespace WorldCreator.Mod
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(_project!.WeatherName(eventId) + "  ·  " + eventId, _sectionStyle!);
                 GUILayout.FlexibleSpace();
-                if (_project.IsUserWeather(eventId) && NativeButton("Save for future projects", _buttonStyle!, GUILayout.Width(190)))
+                if (_project.IsUserWeather(eventId) && NativeButton("Save to My Weather", _buttonStyle!, GUILayout.Width(170)))
                 {
                     try
                     {
                         _project.SaveWeatherToLibrary(eventId);
-                        _status = "Saved " + _project.WeatherName(eventId) + " for future projects.";
+                        _status = "Saved " + _project.WeatherName(eventId) + " to My Weather.";
                     }
                     catch (Exception e) { _status = e.Message; }
                 }

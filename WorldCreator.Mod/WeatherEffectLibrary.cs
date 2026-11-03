@@ -60,16 +60,12 @@ namespace WorldCreator.Mod
             else File.Move(temporary, target);
         }
 
-        internal static string Archive(string id)
+        internal static void Delete(string id)
         {
             if (!IsValidId(id)) throw new InvalidOperationException("Invalid saved weather ID.");
             var source = Path.Combine(DirectoryPath, id + ".xml");
             if (!File.Exists(source)) throw new FileNotFoundException("Saved weather effect was not found.", source);
-            var archive = Path.Combine(DirectoryPath, "Removed");
-            System.IO.Directory.CreateDirectory(archive);
-            var target = Path.Combine(archive, id + "-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ".xml");
-            File.Move(source, target);
-            return target;
+            File.Delete(source);
         }
 
         internal static bool IsValidId(string? id) => id != null && Regex.IsMatch(id, @"^WCWeather_[A-Za-z0-9_]{1,40}$");

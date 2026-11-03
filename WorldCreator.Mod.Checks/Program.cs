@@ -20,6 +20,27 @@ try
         throw new Exception("Editable world settings are missing their unit and purpose tooltips: " + temperatureTime.Tooltip + " | " + temperatureValue.Tooltip + " | " + gasQuantity.Tooltip + " | " + cooldown.Tooltip);
     if (!project.AdvancedFields.Any(f => f.Label.Contains("/Temperature/Key") && f.Label.Contains("InTangent")))
         throw new Exception("Advanced XML no longer exposes the preserved curve interpolation data");
+    var previewProject = new WorldProject(assets, "Mars2/Mars2.xml");
+    var previewTemperature = previewProject.AtmosphereFields.First(f => f.Label.Contains("/Temperature/Key") && f.Label.EndsWith(" / Value"));
+    previewTemperature.Value = "300";
+    var editedPreview = previewProject.CreateAtmosphereSnapshot();
+    if ((string?)editedPreview.Element("Temperature")?.Element("Key")?.Attribute("Value") != "300")
+        throw new Exception("Climate preview ignored a temperature draft");
+    previewTemperature.Value = previewTemperature.Original;
+    var revertedPreview = previewProject.CreateAtmosphereSnapshot();
+    if ((string?)revertedPreview.Element("Temperature")?.Element("Key")?.Attribute("Value") != previewTemperature.Original ||
+        (string?)editedPreview.Element("Temperature")?.Element("Key")?.Attribute("Value") != "300")
+        throw new Exception("Climate preview retained a reverted draft or changed a previous snapshot");
+    var previewGas = previewProject.AtmosphereFields.First(f => f.Label.Contains("[CarbonDioxide]") && f.Label.EndsWith(" / Quantity"));
+    previewGas.Value = "-1";
+    var invalidPreviewRejected = false;
+    try { previewProject.CreateAtmosphereSnapshot(); } catch (InvalidOperationException) { invalidPreviewRejected = true; }
+    if (!invalidPreviewRejected) throw new Exception("Climate preview accepted a negative gas amount");
+    if (args.Contains("--climate-snapshot"))
+    {
+        Console.WriteLine("Climate snapshot checks passed: edited values, reverted values, independent snapshots and invalid gas rejection.");
+        return;
+    }
     var blank = WorldProject.CreateBlank(assets);
     var blankReadiness = blank.ValidateForExport(temp, "WC_BlankCheck", "Blank Check");
     if (blankReadiness.Any(issue => issue.IsError) || !blankReadiness.Any(issue => issue.Text.Contains("no compiled terrain")))
@@ -116,9 +137,10 @@ try
     var workshopLanguage = XDocument.Load(Path.Combine(workshopExport, "GameData", "Language", "english.xml"));
     if (workshopLanguage.Root?.Element("Interface")?.Elements("Record").Any(e => (string?)e.Element("Value") == "Workshop Breeze") != true)
         throw new Exception("Imported Workshop weather localization was not retained");
-    var archivedWeather = WeatherEffectLibrary.Archive("WCWeather_CheckEffect");
-    if (WeatherEffectLibrary.Load().Any(e => e.Id == "WCWeather_CheckEffect") || !File.Exists(archivedWeather))
-        throw new Exception("Removing a reusable weather preset did not move it to the reversible Removed folder");
+    var deletedWeather = Path.Combine(WeatherEffectLibrary.DirectoryPath, "WCWeather_CheckEffect.xml");
+    WeatherEffectLibrary.Delete("WCWeather_CheckEffect");
+    if (WeatherEffectLibrary.Load().Any(e => e.Id == "WCWeather_CheckEffect") || File.Exists(deletedWeather))
+        throw new Exception("Deleting a saved weather effect did not remove it from the reusable library");
     var cloneProject = new WorldProject(assets, "Mars2/Mars2.xml");
     cloneProject.CreateWeather("WCWeather_CloneCheck", "Cloned Dust Storm", "MarsDustStorm");
     cloneProject.SaveWeatherToLibrary("WCWeather_CloneCheck");
@@ -187,14 +209,14 @@ try
     try { invalid.Export(temp, "WC_Invalid", "Invalid"); throw new Exception("Invalid value accepted"); } catch (InvalidOperationException) { }
     if (Directory.Exists(Path.Combine(temp, "WorldCreator_WC_Invalid"))) throw new Exception("Invalid export left a mod folder");
     var moon = new WorldProject(assets, "Lunar/Lunar.xml");
-    moon.AddGas("Oxygen");
+    moon.AddGas("Oxygen", 1);
     moon.AddTemperatureCurve();
     moon.AddOptionalSetting("World/GlobalAtmosphere/Volume");
     moon.AddOptionalSetting("World/GlobalAtmosphere/SolarRadiationTemperature");
     moon.AddOptionalSetting("World/GlobalAtmosphere/GHGTemperatureOffset");
     moon.AddOptionalSetting("World/GlobalAtmosphere/DensityOffset");
     moon.AtmosphereFields.Single(f => f.Label.Contains("[Oxygen]") && f.Label.EndsWith("Quantity")).Value = "10";
-    try { moon.AddGas("Oxygen"); throw new Exception("Duplicate gas accepted"); } catch (InvalidOperationException) { }
+    try { moon.AddGas("Oxygen", 1); throw new Exception("Duplicate gas accepted"); } catch (InvalidOperationException) { }
     moon.RemoveWeather("SolarStorm");
     moon.AddWeather("MarsDustStorm");
     var moonPath = moon.Export(temp, "WC_Moon", "Moon Test");

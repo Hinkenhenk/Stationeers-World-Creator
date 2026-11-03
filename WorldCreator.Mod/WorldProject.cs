@@ -190,9 +190,9 @@ namespace WorldCreator.Mod
                     throw new InvalidOperationException("Gas quantities cannot be negative: " + Label);
             }
 
-            internal void Apply()
+            internal void Apply(bool includeUnchanged = false)
             {
-                if (Value != Original) _write(Value);
+                if (includeUnchanged || Value != Original) _write(Value);
             }
         }
 
@@ -230,7 +230,7 @@ namespace WorldCreator.Mod
             if (leaf.Equals("Time", StringComparison.OrdinalIgnoreCase))
             {
                 if (lower.Contains("/temperature/key")) return "Solar angle in degrees for the base temperature curve: 0° is sun overhead, 90° is the horizon and 180° is below the opposite side. This is not clock time.";
-                if (lower.Contains("solarradiationtemperature")) return "Input position from 0–100 across this orbit's calculated solar-irradiance range. It is not a clock time or percent of Earth's sunlight.";
+                if (lower.Contains("solarradiationtemperature")) return "Relative sunlight input used by this orbit's solar-radiation temperature curve, scaled from 0–100. It is not clock time, sun angle, or a location on the planet.";
                 if (lower.Contains("ghgtemperatureoffset")) return "Greenhouse-index input for this offset curve. It is not a clock time; preserve the template's domain unless you know the runtime range.";
                 if (lower.Contains("densityoffset")) return "Atmospheric gas-density input in mmol/L for this offset curve. It is not a clock time.";
                 return "Curve input coordinate. Its meaning depends on the curve named in the setting path; it is not necessarily clock time.";
@@ -715,6 +715,14 @@ namespace WorldCreator.Mod
         }
 
         internal bool HasTemperatureCurve => _world.Element("GlobalAtmosphere")?.Element("Temperature") != null;
+
+        internal XElement CreateAtmosphereSnapshot()
+        {
+            foreach (var field in AtmosphereFields) field.Validate();
+            // Include reverted drafts so a previous preview cannot leave stale XML values behind.
+            foreach (var field in AtmosphereFields) field.Apply(includeUnchanged: true);
+            return new XElement(_world.Element("GlobalAtmosphere") ?? throw new InvalidOperationException("Add an atmosphere before previewing its temperature."));
+        }
 
         internal void SetTerrainSource(string kind, string path)
         {
