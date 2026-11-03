@@ -4,8 +4,9 @@
 **/dist/
 
 # Decompiled game source and local research/build state
-/research/decompiled/
 /research/
+/WorldCreator.Checks/
+/WorldCreator.Mod.Checks/
 /TOOL-PLAN.md
 /backups/
 /.dotnet_cli_home/

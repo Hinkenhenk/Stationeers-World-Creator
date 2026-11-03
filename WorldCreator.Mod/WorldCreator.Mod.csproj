@@ -4,7 +4,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <AssemblyName>WorldCreator.Mod</AssemblyName>
+    <AssemblyName>WorldCreator</AssemblyName>
     <RootNamespace>WorldCreator.Mod</RootNamespace>
     <GameDir Condition="'$(GameDir)' == ''">D:\Games\steamapps\common\Stationeers</GameDir>
     <GameManagedDir>$(GameDir)\rocketstation_Data\Managed</GameManagedDir>

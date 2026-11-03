@@ -1,30 +1,48 @@
-# Stationeers World Creator
+# World Creator
 
-An in-game BepInEx mod for creating and editing custom Stationeers worlds.
+An in-game world editor for Stationeers. Create a world from scratch, start from a vanilla preset, or edit a world installed locally or through Steam Workshop.
 
-Current version: **0.2.150**.
+## Install
 
-Download the ready-to-install **WorldCreator-0.2.150.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest). BepInEx 5 and StationeersLaunchPad must already be installed.
+Requires Stationeers, BepInEx 5 and [StationeersLaunchPad](https://stationeerslaunchpad.github.io/).
 
-Extract the ZIP into `Documents\My Games\Stationeers\mods`. The result should be `mods\WorldCreator\About\About.xml` and `mods\WorldCreator\WorldCreator.Mod.dll`. Enable StationeersWorldCreator in LaunchPad, then open World Creator from the main menu.
+1. Download **WorldCreator-0.2.151.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest).
+2. Close Stationeers and extract the `WorldCreator` folder into `Documents\My Games\Stationeers\mods`.
+3. If upgrading from 0.2.150 or earlier, remove `WorldCreator.Mod.dll` from that folder. The mod is now called `WorldCreator.dll`; keep only the new DLL.
+4. Enable **StationeersWorldCreator** in your LaunchPad profile, then open **World Creator** from the game's main menu.
 
-## In this update
+The installed folder should contain:
 
-- Help on every editor page opens page-specific explanations and an eight-step guide to creating a world from scratch.
-- Hover help now appears in front of the editor. Climate plots stay inside their scroll viewport.
-- Orbit simulation advances on the editor page; sphere lighting avoids the previous white overexposure.
+```text
+WorldCreator/
+  About/
+    About.xml
+  WorldCreator.dll
+  README.txt
+```
 
-- Environment includes a combined temperature preview and baseline, sunlight, greenhouse, and density contributions, using the installed game's curve evaluators.
-- Inspect the temperature breakdown at a selected sun angle and sunlight input. Per-gas greenhouse graphs and a concentration/contribution table explain how the gas mixture affects the result.
-- Installed weather and personal saved effects have separate dropdowns. Custom effects persist across game restarts and can be deleted with confirmation. Installed presets cannot be deleted from the personal library.
-- Empty pressure-estimate inputs retain `- kPa`; temperature-curve labels and descriptions explain their actual inputs.
+## Using the editor
 
-The climate preview works on an isolated copy of the project atmosphere. It excludes transient weather, phase-change energy, and player heat input. Gas greenhouse definitions come from the loaded game, or the installed `terraforming.xml` when no definitions are loaded. It does not author shared gas-response definitions.
+Choose **Create a New World** for a blank project, or **Load a World** to edit an installed world definition. Vanilla presets are available on Overview.
 
-The source and build/install notes are in [WorldCreator.Mod](WorldCreator.Mod/README.md). Verification checks are in [WorldCreator.Mod.Checks](WorldCreator.Mod.Checks/Program.cs).
+- **Environment:** gas composition, temperature curves and climate calculations.
+- **Weather:** installed events, custom effects and a reusable weather library.
+- **Orbit & seasons:** orbital settings, landing coordinates and a rotating preview.
+- **Starting conditions:** spawn profiles, supply crates and equipment.
+- **Map Studio and Terrain:** region masks, map painting and access to the game's terrain tools.
+- **Resources, Asset libraries and Advanced:** ore settings, project files and the underlying XML fields.
 
-Game DLLs, textures, decompiled sources, research inventories, and old archives are not included. The release ZIP contains only the mod DLL, metadata, and installation notes.
+Each page has a **Help** button. When finished, choose **Create world mod**. Restart Stationeers, enable the generated world mod in LaunchPad, then select it when starting a new world.
 
+A blank project needs compiled terrain before it can be played. The climate preview shows the initial world conditions; active weather, phase changes and player heat can change the result in game.
 
-Build 0.2.150 adds Remove gas controls, a square Map Studio preview, and separate cards for region sets and their regions. World IDs no longer require WC_; help, tooltips and validation agree. Gas removal and World ID XML/export checks passed. The UI changes still need an in-game review. The broader suite reports a missing texture when re-exporting a loaded custom map.
+## Development
 
+See [building from source](docs/development.md). The mod targets Stationeers **0.2.6428.27798**. Game assemblies are read from your installation and are not included here.
+
+## Known issues
+
+- Re-exporting a loaded custom map can fail because a referenced texture is missing from the output.
+- Recent Map Studio layout changes still need an in-game review.
+
+Report problems in [Issues](https://github.com/Hinkenhenk/Stationeers-World-Creator/issues), with the mod version and the relevant log or screenshot.
