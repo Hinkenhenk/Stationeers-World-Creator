@@ -1,0 +1,804 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Items>
+  <Item Id="ItemActiveVent" Name="Kit (Active Vent)" />
+  <Item Id="ItemAdhesiveInsulation" Name="Adhesive Insulation" />
+  <Item Id="ItemAdvancedTablet" Name="Advanced Tablet" />
+  <Item Id="ItemAlienMushroom" Name="Alien Mushroom" />
+  <Item Id="ItemAmmoBox" Name="Ammo Box" />
+  <Item Id="ItemAngleGrinder" Name="Angle Grinder" />
+  <Item Id="ItemArcWelder" Name="Arc Welder" />
+  <Item Id="ItemAreaPowerControl" Name="Kit (Area Power Controller)" />
+  <Item Id="ItemAstroloyIngot" Name="Ingot (Astroloy)" />
+  <Item Id="ItemAstroloySheets" Name="Astroloy Sheets" />
+  <Item Id="ItemAuthoringTool" Name="Authoring Tool" />
+  <Item Id="ItemBasketBall" Name="Basket Ball" />
+  <Item Id="ItemBatteryCell" Name="Battery Cell (Small)" />
+  <Item Id="ItemBatteryCellLarge" Name="Battery Cell (Large)" />
+  <Item Id="ItemBatteryCellNuclear" Name="Battery Cell (Nuclear)" />
+  <Item Id="ItemBatteryCharger" Name="Kit (Battery Charger)" />
+  <Item Id="ItemBatteryChargerSmall" Name="Battery Charger Small" />
+  <Item Id="ItemBeacon" Name="Tracking Beacon" />
+  <Item Id="ItemBiomass" Name="Biomass" />
+  <Item Id="ItemBlueberry" Name="Blueberry" />
+  <Item Id="ItemBook" Name="Book" />
+  <Item Id="ItemBreadLoaf" Name="Bread Loaf" />
+  <Item Id="ItemBurger" Name="Burger" />
+  <Item Id="ItemBurgerBox" Name="Burger Box" />
+  <Item Id="ItemCableAnalyser" Name="Kit (Cable Analyzer)" />
+  <Item Id="ItemCableCoil" Name="Cable Coil" />
+  <Item Id="ItemCableCoilHeavy" Name="Cable Coil (Heavy)" />
+  <Item Id="ItemCableCoilSuperHeavy" Name="Cable Coil (Super Heavy)" />
+  <Item Id="ItemCableFuse" Name="Kit (Cable Fuses)" />
+  <Item Id="ItemCableGun" Name="Cable Gun" />
+  <Item Id="ItemCableToolBelt" Name="Electrical Belt" />
+  <Item Id="ItemCannedCondensedMilk" Name="Canned Condensed Milk" />
+  <Item Id="ItemCannedEdamame" Name="Canned Edamame" />
+  <Item Id="ItemCannedMushroom" Name="Canned Mushroom" />
+  <Item Id="ItemCannedPowderedEggs" Name="Canned Powdered Eggs" />
+  <Item Id="ItemCannedRicePudding" Name="Canned Rice Pudding" />
+  <Item Id="ItemCerealBar" Name="Cereal Bar" />
+  <Item Id="ItemCerealBarBag" Name="Cereal Bar Bag" />
+  <Item Id="ItemCerealBarBox" Name="Cereal Bar Box" />
+  <Item Id="ItemCharcoal" Name="Charcoal" />
+  <Item Id="ItemCheeseWedge" Name="Cheese" />
+  <Item Id="ItemChemLightBlue" Name="Chem Light (Blue)" />
+  <Item Id="ItemChemLightGreen" Name="Chem Light (Green)" />
+  <Item Id="ItemChemLightRed" Name="Chem Light (Red)" />
+  <Item Id="ItemChemLightWhite" Name="Chem Light (White)" />
+  <Item Id="ItemChemLightYellow" Name="Chem Light (Yellow)" />
+  <Item Id="ItemChocolateBar" Name="Chocolate Bar" />
+  <Item Id="ItemChocolateCake" Name="Chocolate Cake" />
+  <Item Id="ItemChocolateCerealBar" Name="Chocolate Cereal Bar" />
+  <Item Id="ItemClothingBagOveralls_Aus" Name="Overalls (Australia)" />
+  <Item Id="ItemClothingBagOveralls_Brazil" Name="Overalls (Brazil)" />
+  <Item Id="ItemClothingBagOveralls_Canada" Name="Overalls (Canada)" />
+  <Item Id="ItemClothingBagOveralls_China" Name="Overalls (China)" />
+  <Item Id="ItemClothingBagOveralls_EU" Name="Overalls (EU)" />
+  <Item Id="ItemClothingBagOveralls_France" Name="Overalls (France)" />
+  <Item Id="ItemClothingBagOveralls_Germany" Name="Overalls (Germany)" />
+  <Item Id="ItemClothingBagOveralls_Japan" Name="Overalls (Japan)" />
+  <Item Id="ItemClothingBagOveralls_Korea" Name="Overalls (Korea)" />
+  <Item Id="ItemClothingBagOveralls_NZ" Name="Overalls (NZ)" />
+  <Item Id="ItemClothingBagOveralls_Paintable" Name="Overalls (Paintable)" />
+  <Item Id="ItemClothingBagOveralls_Russia" Name="Overalls (Russia)" />
+  <Item Id="ItemClothingBagOveralls_SouthAfrica" Name="Overalls (South Africa)" />
+  <Item Id="ItemClothingBagOveralls_UK" Name="Overalls (UK)" />
+  <Item Id="ItemClothingBagOveralls_Ukraine" Name="Overalls (Ukraine)" />
+  <Item Id="ItemClothingBagOveralls_US" Name="Overalls (US)" />
+  <Item Id="ItemCoalOre" Name="Ore (Coal)" />
+  <Item Id="ItemCobaltIngot" Name="Ingot (Cobalt)" />
+  <Item Id="ItemCobaltOre" Name="Ore (Cobalt)" />
+  <Item Id="ItemCocoaPowder" Name="Cocoa Powder" />
+  <Item Id="ItemCocoaTree" Name="Cocoa" />
+  <Item Id="ItemCoffeeMug" Name="Coffee Mug" />
+  <Item Id="ItemCompositeFloorGrating" Name="Composite Floor Grating" />
+  <Item Id="ItemConstantanIngot" Name="Ingot (Constantan)" />
+  <Item Id="ItemCookedCondensedMilk" Name="Condensed Milk" />
+  <Item Id="ItemCookedCorn" Name="Cooked Corn" />
+  <Item Id="ItemCookedMushroom" Name="Cooked Mushroom" />
+  <Item Id="ItemCookedPowderedEggs" Name="Powdered Eggs" />
+  <Item Id="ItemCookedPumpkin" Name="Cooked Pumpkin" />
+  <Item Id="ItemCookedRice" Name="Cooked Rice" />
+  <Item Id="ItemCookedSoybean" Name="Cooked Soybean" />
+  <Item Id="ItemCookedTomato" Name="Cooked Tomato" />
+  <Item Id="ItemCopperIngot" Name="Ingot (Copper)" />
+  <Item Id="ItemCopperOre" Name="Ore (Copper)" />
+  <Item Id="ItemCorn" Name="Corn" />
+  <Item Id="ItemCornSoup" Name="Corn Soup" />
+  <Item Id="ItemCreditCard" Name="Credit Card" />
+  <Item Id="ItemCropHay" Name="Hay" />
+  <Item Id="ItemCrowbar" Name="Crowbar" />
+  <Item Id="ItemCryoMask" Name="Cryo Mask" />
+  <Item Id="ItemDataDisk" Name="Data Disk" />
+  <Item Id="ItemDebugHeadlamp" Name="Debug Headlamp" />
+  <Item Id="ItemDebugJetpack" Name="Debug Jetpack" />
+  <Item Id="ItemDecorFern" Name="Decorative Fern" />
+  <Item Id="ItemDefibrillator" Name="Defibrillator" />
+  <Item Id="ItemDirtCanister" Name="Dirt Canister" />
+  <Item Id="ItemDirtCannister" Name="Dirt Cannister" />
+  <Item Id="ItemDirtyOre" Name="Dirty Ore" />
+  <Item Id="ItemDisposableBatteryCharger" Name="Disposable Battery Charger" />
+  <Item Id="ItemDrill" Name="Hand Drill" />
+  <Item Id="ItemDuctTape" Name="Duct Tape" />
+  <Item Id="ItemDynamicAirCon" Name="Kit (Portable Air Conditioner)" />
+  <Item Id="ItemDynamicScrubber" Name="Kit (Portable Scrubber)" />
+  <Item Id="ItemDynamite" Name="Dynamite" />
+  <Item Id="ItemEgg" Name="Egg" />
+  <Item Id="ItemEggBottom" Name="Egg Bottom" />
+  <Item Id="ItemEggCarton" Name="Egg Carton" />
+  <Item Id="ItemEggTop" Name="Egg Top" />
+  <Item Id="ItemElectronicParts" Name="Electronic Parts" />
+  <Item Id="ItemElectrumIngot" Name="Ingot (Electrum)" />
+  <Item Id="ItemEmergencyAngleGrinder" Name="Emergency Angle Grinder" />
+  <Item Id="ItemEmergencyArcWelder" Name="Emergency Arc Welder" />
+  <Item Id="ItemEmergencyCrowbar" Name="Emergency Crowbar" />
+  <Item Id="ItemEmergencyDrill" Name="Emergency Drill" />
+  <Item Id="ItemEmergencyEvaSuit" Name="Emergency Eva Suit" />
+  <Item Id="ItemEmergencyHelmet" Name="Emergency Helmet" />
+  <Item Id="ItemEmergencyPickaxe" Name="Emergency Pickaxe" />
+  <Item Id="ItemEmergencyScrewdriver" Name="Emergency Screwdriver" />
+  <Item Id="ItemEmergencySpaceHelmet" Name="Emergency Space Helmet" />
+  <Item Id="ItemEmergencySuppliesBox" Name="Emergency Supplies" />
+  <Item Id="ItemEmergencyToolBelt" Name="Emergency Tool Belt" />
+  <Item Id="ItemEmergencyWireCutters" Name="Emergency Wire Cutters" />
+  <Item Id="ItemEmergencyWrench" Name="Emergency Wrench" />
+  <Item Id="ItemEmptyCan" Name="Empty Can" />
+  <Item Id="ItemEvaSuit" Name="Eva Suit" />
+  <Item Id="ItemExplosive" Name="Demolition Charge" />
+  <Item Id="ItemExplosiveBasic" Name="Explosive Basic" />
+  <Item Id="ItemFern" Name="Fern" />
+  <Item Id="ItemFertilizedEgg" Name="Egg" />
+  <Item Id="ItemFilterFern" Name="Darga Fern" />
+  <Item Id="ItemFireExtinguisher" Name="Fire Extinguisher" />
+  <Item Id="ItemFlagSmall" Name="Kit (Small Flag)" />
+  <Item Id="ItemFlashingLight" Name="Kit (Flashing Light)" />
+  <Item Id="ItemFlashlight" Name="Flashlight" />
+  <Item Id="ItemFlax" Name="Flax" />
+  <Item Id="ItemFlour" Name="Flour" />
+  <Item Id="ItemFlowerBlue" Name="Flower (Blue)" />
+  <Item Id="ItemFlowerGreen" Name="Flower (Green)" />
+  <Item Id="ItemFlowerOrange" Name="Flower (Orange)" />
+  <Item Id="ItemFlowerRed" Name="Flower (Red)" />
+  <Item Id="ItemFlowerYellow" Name="Flower (Yellow)" />
+  <Item Id="ItemFrenchFries" Name="Canned French Fries" />
+  <Item Id="ItemFries" Name="French Fries" />
+  <Item Id="ItemGasCanisterCarbonDioxide" Name="Canister (CO2)" />
+  <Item Id="ItemGasCanisterEmpty" Name="Canister" />
+  <Item Id="ItemGasCanisterFuel" Name="Canister (Fuel)" />
+  <Item Id="ItemGasCanisterNitrogen" Name="Canister (Nitrogen)" />
+  <Item Id="ItemGasCanisterNitrousOxide" Name="Gas Canister (Sleeping)" />
+  <Item Id="ItemGasCanisterOxygen" Name="Canister (Oxygen)" />
+  <Item Id="ItemGasCanisterPollutants" Name="Canister (Pollutants)" />
+  <Item Id="ItemGasCanisterSmart" Name="Gas Canister (Smart)" />
+  <Item Id="ItemGasCanisterVolatiles" Name="Canister (Volatiles)" />
+  <Item Id="ItemGasCanisterWater" Name="Liquid Canister (Water)" />
+  <Item Id="ItemGasFilterAlcohol" Name="Filter (Alcohol)" />
+  <Item Id="ItemGasFilterAlcoholInfinite" Name="Catalytic Filter (Alcohol)" />
+  <Item Id="ItemGasFilterAlcoholL" Name="Heavy Filter (Alcohol)" />
+  <Item Id="ItemGasFilterAlcoholM" Name="Medium Filter (Alcohol)" />
+  <Item Id="ItemGasFilterCarbonDioxide" Name="Filter (Carbon Dioxide)" />
+  <Item Id="ItemGasFilterCarbonDioxideInfinite" Name="Catalytic Filter (Carbon Dioxide)" />
+  <Item Id="ItemGasFilterCarbonDioxideL" Name="Heavy Filter (Carbon Dioxide)" />
+  <Item Id="ItemGasFilterCarbonDioxideM" Name="Medium Filter (Carbon Dioxide)" />
+  <Item Id="ItemGasFilterHCl" Name="Filter (Hydrochloric Acid)" />
+  <Item Id="ItemGasFilterHClInfinite" Name="Catalytic Filter (Hydrochloric Acid)" />
+  <Item Id="ItemGasFilterHClL" Name="Heavy Filter (Hydrochloric Acid)" />
+  <Item Id="ItemGasFilterHClM" Name="Medium Filter (Hydrochloric Acid)" />
+  <Item Id="ItemGasFilterHelium" Name="Filter (Helium)" />
+  <Item Id="ItemGasFilterHeliumInfinite" Name="Catalytic Filter (Helium)" />
+  <Item Id="ItemGasFilterHeliumL" Name="Heavy Filter (Helium)" />
+  <Item Id="ItemGasFilterHeliumM" Name="Medium Filter (Helium)" />
+  <Item Id="ItemGasFilterHydrazine" Name="Filter (Hydrazine)" />
+  <Item Id="ItemGasFilterHydrazineInfinite" Name="Catalytic Filter (Hydrazine)" />
+  <Item Id="ItemGasFilterHydrazineL" Name="Heavy Filter (Hydrazine)" />
+  <Item Id="ItemGasFilterHydrazineM" Name="Medium Filter (Hydrazine)" />
+  <Item Id="ItemGasFilterHydrogen" Name="Filter (Hydrogen)" />
+  <Item Id="ItemGasFilterHydrogenInfinite" Name="Catalytic Filter (Hydrogen)" />
+  <Item Id="ItemGasFilterHydrogenL" Name="Heavy Filter (Hydrogen)" />
+  <Item Id="ItemGasFilterHydrogenM" Name="Medium Filter (Hydrogen)" />
+  <Item Id="ItemGasFilterNitrogen" Name="Filter (Nitrogen)" />
+  <Item Id="ItemGasFilterNitrogenInfinite" Name="Catalytic Filter (Nitrogen)" />
+  <Item Id="ItemGasFilterNitrogenL" Name="Heavy Filter (Nitrogen)" />
+  <Item Id="ItemGasFilterNitrogenM" Name="Medium Filter (Nitrogen)" />
+  <Item Id="ItemGasFilterNitrousOxide" Name="Filter (Nitrous Oxide)" />
+  <Item Id="ItemGasFilterNitrousOxideInfinite" Name="Catalytic Filter (Nitrous Oxide)" />
+  <Item Id="ItemGasFilterNitrousOxideL" Name="Heavy Filter (Nitrous Oxide)" />
+  <Item Id="ItemGasFilterNitrousOxideM" Name="Medium Filter (Nitrous Oxide)" />
+  <Item Id="ItemGasFilterOxygen" Name="Filter (Oxygen)" />
+  <Item Id="ItemGasFilterOxygenInfinite" Name="Catalytic Filter (Oxygen)" />
+  <Item Id="ItemGasFilterOxygenL" Name="Heavy Filter (Oxygen)" />
+  <Item Id="ItemGasFilterOxygenM" Name="Medium Filter (Oxygen)" />
+  <Item Id="ItemGasFilterOzone" Name="Filter (Ozone)" />
+  <Item Id="ItemGasFilterOzoneInfinite" Name="Catalytic Filter (Ozone)" />
+  <Item Id="ItemGasFilterOzoneL" Name="Heavy Filter (Ozone)" />
+  <Item Id="ItemGasFilterOzoneM" Name="Medium Filter (Ozone)" />
+  <Item Id="ItemGasFilterPollutants" Name="Filter (Pollutant)" />
+  <Item Id="ItemGasFilterPollutantsInfinite" Name="Catalytic Filter (Pollutants)" />
+  <Item Id="ItemGasFilterPollutantsL" Name="Heavy Filter (Pollutants)" />
+  <Item Id="ItemGasFilterPollutantsM" Name="Medium Filter (Pollutants)" />
+  <Item Id="ItemGasFilterPollutedWater" Name="Filter (Polluted Water)" />
+  <Item Id="ItemGasFilterPollutedWaterInfinite" Name="Catalytic Filter (Polluted Water)" />
+  <Item Id="ItemGasFilterPollutedWaterL" Name="Heavy Filter (Polluted Water)" />
+  <Item Id="ItemGasFilterPollutedWaterM" Name="Medium Filter (Polluted Water)" />
+  <Item Id="ItemGasFilterSalt" Name="Filter (Salt)" />
+  <Item Id="ItemGasFilterSaltInfinite" Name="Catalytic Filter (Salt)" />
+  <Item Id="ItemGasFilterSaltL" Name="Heavy Filter (Salt)" />
+  <Item Id="ItemGasFilterSaltM" Name="Medium Filter (Salt)" />
+  <Item Id="ItemGasFilterSilanol" Name="Filter (Silanol)" />
+  <Item Id="ItemGasFilterSilanolInfinite" Name="Catalytic Filter (Silanol)" />
+  <Item Id="ItemGasFilterSilanolL" Name="Heavy Filter (Silanol)" />
+  <Item Id="ItemGasFilterSilanolM" Name="Medium Filter (Silanol)" />
+  <Item Id="ItemGasFilterVolatiles" Name="Filter (Methane)" />
+  <Item Id="ItemGasFilterVolatilesInfinite" Name="Catalytic Filter (Methane)" />
+  <Item Id="ItemGasFilterVolatilesL" Name="Heavy Filter (Methane)" />
+  <Item Id="ItemGasFilterVolatilesM" Name="Medium Filter (Methane)" />
+  <Item Id="ItemGasFilterWater" Name="Filter (Water)" />
+  <Item Id="ItemGasFilterWaterInfinite" Name="Catalytic Filter (Water)" />
+  <Item Id="ItemGasFilterWaterL" Name="Heavy Filter (Water)" />
+  <Item Id="ItemGasFilterWaterM" Name="Medium Filter (Water)" />
+  <Item Id="ItemGasMask" Name="Gas Mask" />
+  <Item Id="ItemGasSensor" Name="Kit (Gas Sensor)" />
+  <Item Id="ItemGasTankStorage" Name="Kit (Canister Storage)" />
+  <Item Id="ItemGlasses" Name="Glasses" />
+  <Item Id="ItemGlassSheets" Name="Glass Sheets" />
+  <Item Id="ItemGoldIngot" Name="Ingot (Gold)" />
+  <Item Id="ItemGoldOre" Name="Ore (Gold)" />
+  <Item Id="ItemGorse" Name="Gorse" />
+  <Item Id="ItemGrass" Name="Grass" />
+  <Item Id="ItemGrenade" Name="Hand Grenade" />
+  <Item Id="ItemHandSanitizer" Name="Hand Sanitizer" />
+  <Item Id="ItemHardBackpack" Name="Hardsuit Backpack" />
+  <Item Id="ItemHardHat" Name="Hard Hat" />
+  <Item Id="ItemHardJetpack" Name="Hardsuit Jetpack" />
+  <Item Id="ItemHardMiningBackPack" Name="Hard Mining Backpack" />
+  <Item Id="ItemHardSuit" Name="Hardsuit" />
+  <Item Id="ItemHardsuitHelmet" Name="Hardsuit Helmet" />
+  <Item Id="ItemHastelloyIngot" Name="Ingot (Hastelloy)" />
+  <Item Id="ItemHat" Name="Hat" />
+  <Item Id="ItemHealPill" Name="Heal Pill" />
+  <Item Id="ItemHEMDroidRepairKit" Name="HEMDroid Repair Kit" />
+  <Item Id="ItemHighVolumeGasCanisterEmpty" Name="High Volume Gas Canister" />
+  <Item Id="ItemHorticultureBelt" Name="Horticulture Belt" />
+  <Item Id="ItemHydroponicTray" Name="Kit (Hydroponic Tray)" />
+  <Item Id="ItemIcarusHelmet" Name="Icarus Helmet" />
+  <Item Id="ItemIcarusSuit" Name="Icarus Suit" />
+  <Item Id="ItemIce" Name="Ice (Water)" />
+  <Item Id="ItemIgniter" Name="Kit (Igniter)" />
+  <Item Id="ItemInconelIngot" Name="Ingot (Inconel)" />
+  <Item Id="ItemInjectorDex" Name="Injector Dex" />
+  <Item Id="ItemInjectorEpi" Name="Auto-Injector (Stim)" />
+  <Item Id="ItemInjectorHealth" Name="Auto-Injector (Health)" />
+  <Item Id="ItemInjectorStun" Name="Auto-Injector (Stun)" />
+  <Item Id="ItemInsulatedCanisterPackage" Name="Insulated Canister Package" />
+  <Item Id="ItemInsulatedTankConnector" Name="Kit (Insulated Tank Connector)" />
+  <Item Id="ItemInsulatedTankConnectorLiquid" Name="Kit (Insulated Tank Connector Liquid)" />
+  <Item Id="ItemInsulation" Name="Insulation" />
+  <Item Id="ItemIntegratedCircuit10" Name="Integrated Circuit (IC10)" />
+  <Item Id="ItemInvarIngot" Name="Ingot (Invar)" />
+  <Item Id="ItemIronFrames" Name="Iron Frames" />
+  <Item Id="ItemIronIngot" Name="Ingot (Iron)" />
+  <Item Id="ItemIronOre" Name="Ore (Iron)" />
+  <Item Id="ItemIronSheets" Name="Iron Sheets" />
+  <Item Id="ItemJetpackBasic" Name="Jetpack Basic" />
+  <Item Id="ItemJetpackTurbine" Name="Turbine Jetpack" />
+  <Item Id="ItemKitAccessBridge" Name="Kit (Access Bridge)" />
+  <Item Id="ItemKitAdvancedComposter" Name="Kit (Advanced Composter)" />
+  <Item Id="ItemKitAdvancedFurnace" Name="Kit (Advanced Furnace)" />
+  <Item Id="ItemKitAdvancedPackagingMachine" Name="Kit (Advanced Packaging Machine)" />
+  <Item Id="ItemKitAIMeE" Name="Kit (AIMeE)" />
+  <Item Id="ItemKitAirlock" Name="Kit (Airlock)" />
+  <Item Id="ItemKitAirlockGate" Name="Kit (Hangar Door)" />
+  <Item Id="ItemKitArcFurnace" Name="Kit (Arc Furnace)" />
+  <Item Id="ItemKitAtmospherics" Name="Kit (Atmospherics)" />
+  <Item Id="ItemKitAutolathe" Name="Kit (Autolathe)" />
+  <Item Id="ItemKitAutomatedOven" Name="Kit (Automated Oven)" />
+  <Item Id="ItemKitAutoMiner" Name="Kit (Auto Miner)" />
+  <Item Id="ItemKitAutoMinerSmall" Name="Kit (Autominer Small)" />
+  <Item Id="ItemKitBasket" Name="Kit (Basket)" />
+  <Item Id="ItemKitBattery" Name="Kit (Battery)" />
+  <Item Id="ItemKitBatteryLarge" Name="Kit (Battery Large)" />
+  <Item Id="ItemKitBeacon" Name="Kit (Beacon)" />
+  <Item Id="ItemKitBeds" Name="Kit (Beds)" />
+  <Item Id="ItemKitBlastDoor" Name="Kit (Blast Door)" />
+  <Item Id="ItemKitCentrifuge" Name="Kit (Centrifuge)" />
+  <Item Id="ItemKitChairs" Name="Kit (Chairs)" />
+  <Item Id="ItemKitChute" Name="Kit (Basic Chutes)" />
+  <Item Id="ItemKitChuteUmbilical" Name="Kit (Chute Umbilical)" />
+  <Item Id="ItemKitCombustionDeepMiner" Name="Kit (Combustion Deep Miner)" />
+  <Item Id="ItemKitCompositeCladding" Name="Kit (Cladding)" />
+  <Item Id="ItemKitCompositeFloorGrating" Name="Kit (Floor Grating)" />
+  <Item Id="ItemKitComputer" Name="Kit (Computer)" />
+  <Item Id="ItemKitConsole" Name="Kit (Console)" />
+  <Item Id="ItemKitConveyor" Name="Kit (Conveyors)" />
+  <Item Id="ItemKitCrate" Name="Kit (Crate)" />
+  <Item Id="ItemKitCrateMkII" Name="Kit (Crate Mk II)" />
+  <Item Id="ItemKitCrateMount" Name="Kit (Container Mount)" />
+  <Item Id="ItemKitCrewModuleCableConnector" Name="Kit (Crew Module Cable Connector)" />
+  <Item Id="ItemKitCrewModuleChair" Name="Kit (Crew Module Chair)" />
+  <Item Id="ItemKitCrewModuleElectronics" Name="Kit (Crew Electronics)" />
+  <Item Id="ItemKitCrewModuleScreen" Name="Kit (Crew Module Screen)" />
+  <Item Id="ItemKitCrewParts" Name="Kit (Crew Parts)" />
+  <Item Id="ItemKitCryoTube" Name="Kit (Cryo Tube)" />
+  <Item Id="ItemKitCube" Name="Kit (Cube)" />
+  <Item Id="ItemKitDebug" Name="Kit (Debug)" />
+  <Item Id="ItemKitDeepMiner" Name="Kit (Deep Miner)" />
+  <Item Id="ItemKitDockingPort" Name="Kit (Docking Port)" />
+  <Item Id="ItemKitDoor" Name="Kit (Door)" />
+  <Item Id="ItemKitDrinkingFountain" Name="Kit (Drinking Fountain)" />
+  <Item Id="ItemKitDuct" Name="Kit (Duct)" />
+  <Item Id="ItemKitDynamicAFrameStripes" Name="Kit Portable A Frame Sign (Stripes)" />
+  <Item Id="ItemKitDynamicAFrameWIP1" Name="Kit Portable A Frame Sign (WIP)" />
+  <Item Id="ItemKitDynamicBarrier" Name="Kit Portable Barrier" />
+  <Item Id="ItemKitDynamicCanister" Name="Kit (Portable Gas Tank)" />
+  <Item Id="ItemKitDynamicChannelizer" Name="Kit Portable Channelizer" />
+  <Item Id="ItemKitDynamicGasTankAdvanced" Name="Kit (Portable Gas Tank Mk II)" />
+  <Item Id="ItemKitDynamicGenerator" Name="Kit (Portable Generator)" />
+  <Item Id="ItemKitDynamicHydroponics" Name="Kit (Portable Hydroponics)" />
+  <Item Id="ItemKitDynamicLiquidCanister" Name="Kit (Portable Liquid Tank)" />
+  <Item Id="ItemKitDynamicMKIILiquidCanister" Name="Kit (Portable Liquid Tank Mk II)" />
+  <Item Id="ItemKitDynamicWorkCone" Name="Kit Portable Work Cone" />
+  <Item Id="ItemKitElectricUmbilical" Name="Kit (Power Umbilical)" />
+  <Item Id="ItemKitElectronicsPrinter" Name="Kit (Electronics Printer)" />
+  <Item Id="ItemKitElevator" Name="Kit (Elevator)" />
+  <Item Id="ItemKitEngine" Name="Kit (Engines)" />
+  <Item Id="ItemKitEngineLarge" Name="Kit (Engine Large)" />
+  <Item Id="ItemKitEngineMedium" Name="Kit (Engine Medium)" />
+  <Item Id="ItemKitEngineSmall" Name="Kit (Engine Small)" />
+  <Item Id="ItemKitEvaporationChamber" Name="Kit (Phase Change Device)" />
+  <Item Id="ItemKitFabrication" Name="Kit (Fabrication)" />
+  <Item Id="ItemKitFabricator" Name="Kit (Fabricator)" />
+  <Item Id="ItemKitFermenter" Name="Kit Fermenter" />
+  <Item Id="ItemKitFlagODA" Name="Kit (ODA Flag)" />
+  <Item Id="ItemKitFridgeBig" Name="Kit (Fridge Large)" />
+  <Item Id="ItemKitFridgeSmall" Name="Kit (Fridge Small)" />
+  <Item Id="ItemKitFurnace" Name="Kit (Furnace)" />
+  <Item Id="ItemKitFurniture" Name="Kit (Furniture)" />
+  <Item Id="ItemKitFuselage" Name="Kit (Fuselage)" />
+  <Item Id="ItemKitFuselageTypeA" Name="Kit (Fuselage Type A)" />
+  <Item Id="ItemKitFuselageTypeB" Name="Kit (Fuselage Type B)" />
+  <Item Id="ItemKitFuselageTypeC" Name="Kit (Fuselage Type C)" />
+  <Item Id="ItemKitFuselageTypeD" Name="Kit (Fuselage Type D)" />
+  <Item Id="ItemKitFuselageTypeE" Name="Kit (Fuselage Type E)" />
+  <Item Id="ItemKitGasGenerator" Name="Kit (Gas Fuel Generator)" />
+  <Item Id="ItemKitGasUmbilical" Name="Kit (Gas Umbilical)" />
+  <Item Id="ItemKitGenerator" Name="Kit (Generator)" />
+  <Item Id="ItemKitGovernedGasRocketEngine" Name="Kit (Pumped Gas Rocket Engine)" />
+  <Item Id="ItemKitGovernedLiquidRocketEngine" Name="Kit (Pumped Liquid Rocket Engine)" />
+  <Item Id="ItemKitGroundTelescope" Name="Kit (Telescope)" />
+  <Item Id="ItemKitGrowLight" Name="Kit (Grow Light)" />
+  <Item Id="ItemKitGyroscope" Name="Kit (Gyroscope)" />
+  <Item Id="ItemKitHarvie" Name="Kit (Harvie)" />
+  <Item Id="ItemKitHorizontalAutoMiner" Name="Kit (OGRE)" />
+  <Item Id="ItemKitHydraulicPipeBender" Name="Kit (Hydraulic Pipe Bender)" />
+  <Item Id="ItemKitHydroponicAutomated" Name="Kit (Automated Hydroponics)" />
+  <Item Id="ItemKitHydroponicStation" Name="Kit (Hydroponic Station)" />
+  <Item Id="ItemKitIceCrusher" Name="Kit (Ice Crusher)" />
+  <Item Id="ItemKitInsulatedLiquidPipe" Name="Kit (Insulated Liquid Pipe)" />
+  <Item Id="ItemKitInsulatedPipe" Name="Kit (Insulated Pipe)" />
+  <Item Id="ItemKitInsulatedPipeUtility" Name="Kit (Insulated Pipe Utility Gas)" />
+  <Item Id="ItemKitInsulatedPipeUtilityLiquid" Name="Kit (Insulated Pipe Utility Liquid)" />
+  <Item Id="ItemKitInsulatedWaterPipe" Name="Kit (Insulated Water Pipe)" />
+  <Item Id="ItemKitInteriorDoors" Name="Kit (Interior Doors)" />
+  <Item Id="ItemKitLadder" Name="Kit (Ladder)" />
+  <Item Id="ItemKitLandingPad" Name="Kit (Landing Pad)" />
+  <Item Id="ItemKitLandingPadAtmos" Name="Kit (Landing Pad Atmospherics)" />
+  <Item Id="ItemKitLandingPadBasic" Name="Kit (Landing Pad Basic)" />
+  <Item Id="ItemKitLandingPadWaypoint" Name="Kit (Landing Pad Runway)" />
+  <Item Id="ItemKitLargeDirectHeatExchanger" Name="Kit (Large Direct Heat Exchanger)" />
+  <Item Id="ItemKitLargeExtendableRadiator" Name="Kit (Large Extendable Radiator)" />
+  <Item Id="ItemKitLargeSatelliteDish" Name="Kit (Large Satellite Dish)" />
+  <Item Id="ItemKitLarreDockAtmos" Name="Kit (LArRE Dock Atmos)" />
+  <Item Id="ItemKitLarreDockBypass" Name="Kit (LArRE Dock Bypass)" />
+  <Item Id="ItemKitLarreDockCargo" Name="Kit (LArRE Dock Cargo)" />
+  <Item Id="ItemKitLarreDockCollector" Name="Kit (LArRE Dock Collector)" />
+  <Item Id="ItemKitLarreDockHydroponics" Name="Kit (LArRE Dock Hydroponics)" />
+  <Item Id="ItemKitLaunchMount" Name="Kit (Launch Mount)" />
+  <Item Id="ItemKitLaunchMountOrbital" Name="Kit (Orbital Launch Mount)" />
+  <Item Id="ItemKitLaunchPad" Name="Kit (Launch Pad)" />
+  <Item Id="ItemKitLaunchTower" Name="Kit (Rocket Launch Tower)" />
+  <Item Id="ItemKitLinearRail" Name="Kit (Linear Rail)" />
+  <Item Id="ItemKitLiquidFiltration" Name="Kit (Liquid Filtration)" />
+  <Item Id="ItemKitLiquidRegulator" Name="Kit (Liquid Regulator)" />
+  <Item Id="ItemKitLiquidTank" Name="Kit (Liquid Tank)" />
+  <Item Id="ItemKitLiquidTankInsulated" Name="Kit (Insulated Liquid Tank)" />
+  <Item Id="ItemKitLiquidTurboVolumePump" Name="Kit (Turbo Volume Pump - Liquid)" />
+  <Item Id="ItemKitLiquidUmbilical" Name="Kit (Liquid Umbilical)" />
+  <Item Id="ItemKitLocker" Name="Kit (Locker)" />
+  <Item Id="ItemKitLogic" Name="Kit (Logic Unit)" />
+  <Item Id="ItemKitLogicCircuit" Name="Kit (IC Housing)" />
+  <Item Id="ItemKitLogicInputOutput" Name="Kit (Logic I/O)" />
+  <Item Id="ItemKitLogicMemory" Name="Kit (Logic Memory)" />
+  <Item Id="ItemKitLogicProcessor" Name="Kit (Logic Processor)" />
+  <Item Id="ItemKitLogicSwitch" Name="Kit (Logic Switch)" />
+  <Item Id="ItemKitLogicTransmitter" Name="Kit (Logic Transmitter)" />
+  <Item Id="ItemKitLowVolumeLiquidPipes" Name="Kit (Low Volume Liquid Pipe)" />
+  <Item Id="ItemKitLowVolumePipes" Name="Kit (Low Volume Pipe)" />
+  <Item Id="ItemKitMotherShipCore" Name="Kit (Mothership)" />
+  <Item Id="ItemKitMusicMachines" Name="Kit (Music Machines)" />
+  <Item Id="ItemKitOrbitalLaunchMountPayload" Name="Kit (Orbital Launch Mount Payload)" />
+  <Item Id="ItemKitOrganicsPrinter" Name="Kit (Organics Printer)" />
+  <Item Id="ItemKitPassiveLargeRadiator" Name="Kit (Medium Radiator)" />
+  <Item Id="ItemKitPassiveLargeRadiatorGas" Name="Kit (Medium Radiator)" />
+  <Item Id="ItemKitPassiveLargeRadiatorLiquid" Name="Kit (Medium Radiator Liquid)" />
+  <Item Id="ItemKitPassiveVent" Name="Kit (Passive Vent)" />
+  <Item Id="ItemKitPassthroughHeatExchanger" Name="Kit (CounterFlow Heat Exchanger)" />
+  <Item Id="ItemKitPayloadDeliveryContainer" Name="Kit (Payload Delivery Container)" />
+  <Item Id="ItemKitPictureFrame" Name="Kit Picture Frame" />
+  <Item Id="ItemKitPipe" Name="Kit (Pipe)" />
+  <Item Id="ItemKitPipeLiquid" Name="Kit (Liquid Pipe)" />
+  <Item Id="ItemKitPipeOrgan" Name="Kit (Pipe Organ)" />
+  <Item Id="ItemKitPipeRadiator" Name="Kit (Pipe Radiator)" />
+  <Item Id="ItemKitPipeRadiatorLiquid" Name="Kit (Pipe Radiator Liquid)" />
+  <Item Id="ItemKitPipeUtility" Name="Kit (Pipe Utility Gas)" />
+  <Item Id="ItemKitPipeUtilityLiquid" Name="Kit (Pipe Utility Liquid)" />
+  <Item Id="ItemKitPipeValve" Name="Kit (Pipe Valve)" />
+  <Item Id="ItemKitPlanter" Name="Kit (Planter)" />
+  <Item Id="ItemKitPortablesConnector" Name="Kit (Portables Connector)" />
+  <Item Id="ItemKitPoweredVent" Name="Kit (Powered Vent)" />
+  <Item Id="ItemKitPowerPylon" Name="Kit (Power Pylon)" />
+  <Item Id="ItemKitPowerTransmitter" Name="Kit (Power Transmitter)" />
+  <Item Id="ItemKitPowerTransmitterOmni" Name="Kit (Power Transmitter Omni)" />
+  <Item Id="ItemKitPressureFedGasEngine" Name="Kit (Pressure Fed Gas Engine)" />
+  <Item Id="ItemKitPressureFedGasEngineHeavy" Name="Kit (Heavy Pressure Fed Gas Engine)" />
+  <Item Id="ItemKitPressureFedLiquidEngine" Name="Kit (Pressure Fed Liquid Engine)" />
+  <Item Id="ItemKitPressureFedLiquidEngineHeavy" Name="Kit (Heavy Pressure Fed Liquid Engine)" />
+  <Item Id="ItemKitPressurePlate" Name="Kit (Trigger Plate)" />
+  <Item Id="ItemKitPumpedLiquidEngine" Name="Kit (Pumped Liquid Engine)" />
+  <Item Id="ItemKitRailing" Name="Kit (Railing)" />
+  <Item Id="ItemKitRecycler" Name="Kit (Recycler)" />
+  <Item Id="ItemKitRegulator" Name="Kit (Pressure Regulator)" />
+  <Item Id="ItemKitReinforcedWindows" Name="Kit (Reinforced Walls)" />
+  <Item Id="ItemKitResearchMachine" Name="Kit Research Machine" />
+  <Item Id="ItemKitRespawnPointWallMounted" Name="Kit (Respawn)" />
+  <Item Id="ItemKitRobotArmDoor" Name="Kit (Linear Rail Door)" />
+  <Item Id="ItemKitRoboticArm" Name="Kit (LArRE)" />
+  <Item Id="ItemKitRocketAtmospherics" Name="Kit (Rocket Atmospherics)" />
+  <Item Id="ItemKitRocketAvionics" Name="Kit (Avionics)" />
+  <Item Id="ItemKitRocketBattery" Name="Kit (Rocket Battery)" />
+  <Item Id="ItemKitRocketCargoStorage" Name="Kit (Rocket Cargo Storage)" />
+  <Item Id="ItemKitRocketCelestialTracker" Name="Kit (Rocket Celestial Tracker)" />
+  <Item Id="ItemKitRocketCircuitHousing" Name="Kit (Rocket Circuit Housing)" />
+  <Item Id="ItemKitRocketDatalink" Name="Kit (Rocket Datalink)" />
+  <Item Id="ItemKitRocketFuelTanks" Name="Kit (Rocket Fuel Tanks)" />
+  <Item Id="ItemKitRocketGasFuelTank" Name="Kit (Rocket Gas Fuel Tank)" />
+  <Item Id="ItemKitRocketLargePayloadBay" Name="Kit (Payload Bay Large)" />
+  <Item Id="ItemKitRocketLaunchPad" Name="Kit (Rocket Launch Pad)" />
+  <Item Id="ItemKitRocketLiquidFuelTank" Name="Kit (Rocket Liquid Fuel Tank)" />
+  <Item Id="ItemKitRocketManufactory" Name="Kit (Rocket Manufactory)" />
+  <Item Id="ItemKitRocketMiner" Name="Kit (Rocket Miner)" />
+  <Item Id="ItemKitRocketParts" Name="Rocket Internal Parts" />
+  <Item Id="ItemKitRockets" Name="Kit (Rockets)" />
+  <Item Id="ItemKitRocketScanner" Name="Kit (Rocket Scanner)" />
+  <Item Id="ItemKitRocketTransformerSmall" Name="Kit (Transformer Small (Rocket))" />
+  <Item Id="ItemKitRoverFrame" Name="Kit (Rover Frame)" />
+  <Item Id="ItemKitRoverMKI" Name="Kit (Rover Mk I)" />
+  <Item Id="ItemKitSatelliteDish" Name="Kit (Medium Satellite Dish)" />
+  <Item Id="ItemKitSDBHopper" Name="Kit (SDB Hopper)" />
+  <Item Id="ItemKitSecurityPrinter" Name="Kit (Security Printer)" />
+  <Item Id="ItemKitSensor" Name="Kit (Sensors)" />
+  <Item Id="ItemKitShower" Name="Kit (Shower)" />
+  <Item Id="ItemKitShuttleMKII" Name="Kit Shuttle M K I I" />
+  <Item Id="ItemKitSign" Name="Kit (Sign)" />
+  <Item Id="ItemKitSleeper" Name="Kit (Sleeper)" />
+  <Item Id="ItemKitSmallDirectHeatExchanger" Name="Kit (Small Direct Heat Exchanger)" />
+  <Item Id="ItemKitSmallSatelliteDish" Name="Kit (Small Satellite Dish)" />
+  <Item Id="ItemKitSolarPanel" Name="Kit (Solar Panel)" />
+  <Item Id="ItemKitSolarPanelBasic" Name="Kit (Solar Panel Basic)" />
+  <Item Id="ItemKitSolarPanelBasicReinforced" Name="Kit (Solar Panel Basic Heavy)" />
+  <Item Id="ItemKitSolarPanelReinforced" Name="Kit (Solar Panel Heavy)" />
+  <Item Id="ItemKitSolidGenerator" Name="Kit (Solid Generator)" />
+  <Item Id="ItemKitSorter" Name="Kit (Sorter)" />
+  <Item Id="ItemKitSpeaker" Name="Kit (Speaker)" />
+  <Item Id="ItemKitStacker" Name="Kit (Stacker)" />
+  <Item Id="ItemKitStairs" Name="Kit (Stairs)" />
+  <Item Id="ItemKitStairwell" Name="Kit (Stairwell)" />
+  <Item Id="ItemKitStandardChute" Name="Kit (Powered Chutes)" />
+  <Item Id="ItemKitStellarAnchor" Name="Kit (Stellar Anchor)" />
+  <Item Id="ItemKitStirlingEngine" Name="Kit (Stirling Engine)" />
+  <Item Id="ItemKitStorage" Name="Kit (Storage)" />
+  <Item Id="ItemKitStructureLaunchPad" Name="Kit (Launch Pad)" />
+  <Item Id="ItemKitStructureModularRocketCargo01" Name="Kit (Modular Rocket Cargo)" />
+  <Item Id="ItemKitStructureModularRocketEngine01" Name="Kit (Modular Rocket Engine)" />
+  <Item Id="ItemKitStructureModularRocketFueltank01" Name="Kit (Modular Rocket Fueltank)" />
+  <Item Id="ItemKitSuitStorage" Name="Kit (Suit Storage)" />
+  <Item Id="ItemKitTables" Name="Kit (Tables)" />
+  <Item Id="ItemKitTank" Name="Kit (Tank)" />
+  <Item Id="ItemKitTankInsulated" Name="Kit (Insulated Tank)" />
+  <Item Id="ItemKitToilet" Name="Kit (Toilet)" />
+  <Item Id="ItemKitToolManufactory" Name="Kit (Tool Manufactory)" />
+  <Item Id="ItemKitTorpedoTube" Name="Kit (Torpedo Launcher)" />
+  <Item Id="ItemKitTransformer" Name="Kit (Transformer Large)" />
+  <Item Id="ItemKitTransformerSmall" Name="Kit (Transformer Small)" />
+  <Item Id="ItemKitTurbineGenerator" Name="Kit (Turbine Generator)" />
+  <Item Id="ItemKitTurboVolumePump" Name="Kit (Turbo Volume Pump - Gas)" />
+  <Item Id="ItemKitTurret" Name="Kit (Turret)" />
+  <Item Id="ItemKitUprightWindTurbine" Name="Kit (Upright Wind Turbine)" />
+  <Item Id="ItemKitVendingMachine" Name="Kit (Vending Machine)" />
+  <Item Id="ItemKitVendingMachineRefrigerated" Name="Kit (Vending Machine Refrigerated)" />
+  <Item Id="ItemKitWall" Name="Kit (Wall)" />
+  <Item Id="ItemKitWallArch" Name="Kit (Arched Wall)" />
+  <Item Id="ItemKitWallFlat" Name="Kit (Flat Wall)" />
+  <Item Id="ItemKitWallGeometry" Name="Kit (Geometric Wall)" />
+  <Item Id="ItemKitWallIron" Name="Kit (Iron Wall)" />
+  <Item Id="ItemKitWallPadded" Name="Kit (Padded Wall)" />
+  <Item Id="ItemKitWallPanels" Name="Kit (Wall Panels)" />
+  <Item Id="ItemKitWaterBottleFiller" Name="Kit (Water Bottle Filler)" />
+  <Item Id="ItemKitWaterPurifier" Name="Kit (Water Purifier)" />
+  <Item Id="ItemKitWeatherStation" Name="Kit (Weather Station)" />
+  <Item Id="ItemKitWindowShutter" Name="Kit (Composite Window Shutter)" />
+  <Item Id="ItemKitWindTurbine" Name="Kit (Wind Turbine)" />
+  <Item Id="ItemLabeller" Name="Labeller" />
+  <Item Id="ItemLaptop" Name="Laptop" />
+  <Item Id="ItemLeadIngot" Name="Ingot (Lead)" />
+  <Item Id="ItemLeadOre" Name="Ore (Lead)" />
+  <Item Id="ItemLightSword" Name="Light Sword" />
+  <Item Id="ItemLiquidCanisterEmpty" Name="Liquid Canister" />
+  <Item Id="ItemLiquidCanisterSmart" Name="Liquid Canister (Smart)" />
+  <Item Id="ItemLiquidDrain" Name="Kit (Liquid Drain)" />
+  <Item Id="ItemLiquidPipeAnalyzer" Name="Kit (Liquid Pipe Analyzer)" />
+  <Item Id="ItemLiquidPipeHeater" Name="Pipe Heater Kit (Liquid)" />
+  <Item Id="ItemLiquidPipeValve" Name="Kit (Liquid Pipe Valve)" />
+  <Item Id="ItemLiquidPipeVolumePump" Name="Kit (Liquid Volume Pump)" />
+  <Item Id="ItemLiquidTankStorage" Name="Kit (Liquid Canister Storage)" />
+  <Item Id="ItemLiquidVacuum" Name="Liquid Vacuum" />
+  <Item Id="ItemMarineBodyArmor" Name="Marine Armor" />
+  <Item Id="ItemMarineHelmet" Name="Marine Helmet" />
+  <Item Id="ItemMilk" Name="Milk" />
+  <Item Id="ItemMiningBackPack" Name="Mining Backpack" />
+  <Item Id="ItemMiningBelt" Name="Mining Belt" />
+  <Item Id="ItemMiningBeltAdvanced" Name="Mining Belt MK II" />
+  <Item Id="ItemMiningBeltMKII" Name="Mining Belt MK II" />
+  <Item Id="ItemMiningCharge" Name="Mining Charge" />
+  <Item Id="ItemMiningDrill" Name="Mining Drill" />
+  <Item Id="ItemMiningDrillHeavy" Name="Mining Drill (Heavy)" />
+  <Item Id="ItemMiningDrillPneumatic" Name="Pneumatic Mining Drill" />
+  <Item Id="ItemMiningPackage" Name="Mining Supplies Package" />
+  <Item Id="ItemMKIIAngleGrinder" Name="Mk II Angle Grinder" />
+  <Item Id="ItemMKIIArcWelder" Name="Mk II Arc Welder" />
+  <Item Id="ItemMKIICrowbar" Name="Mk II Crowbar" />
+  <Item Id="ItemMKIIDrill" Name="Mk II Drill" />
+  <Item Id="ItemMKIIDuctTape" Name="Mk II Duct Tape" />
+  <Item Id="ItemMKIIMiningDrill" Name="Mk II Mining Drill" />
+  <Item Id="ItemMKIIScrewdriver" Name="Mk II Screwdriver" />
+  <Item Id="ItemMkIIToolbelt" Name="Tool Belt MK II" />
+  <Item Id="ItemMKIIWireCutters" Name="Mk II Wire Cutters" />
+  <Item Id="ItemMKIIWrench" Name="Mk II Wrench" />
+  <Item Id="ItemMuffin" Name="Muffin" />
+  <Item Id="ItemMushroom" Name="Mushroom" />
+  <Item Id="ItemNickelIngot" Name="Ingot (Nickel)" />
+  <Item Id="ItemNickelOre" Name="Ore (Nickel)" />
+  <Item Id="ItemNitrice" Name="Ice (Nitrice)" />
+  <Item Id="ItemNVG" Name="Night Vision Goggles" />
+  <Item Id="ItemOreDetector" Name="Ore Detector" />
+  <Item Id="ItemOxite" Name="Ice (Oxite)" />
+  <Item Id="ItemPassiveVent" Name="Kit (Passive Vent)" />
+  <Item Id="ItemPassiveVentInsulated" Name="Kit (Insulated Passive Vent)" />
+  <Item Id="ItemPeaceLily" Name="Peace Lily" />
+  <Item Id="ItemPickaxe" Name="Pickaxe" />
+  <Item Id="ItemPillHeal" Name="Pill (Medical)" />
+  <Item Id="ItemPillStun" Name="Pill (Stun)" />
+  <Item Id="ItemPipeAnalyizer" Name="Kit (Pipe Analyzer)" />
+  <Item Id="ItemPipeCorner" Name="Kit (Pipe Corner)" />
+  <Item Id="ItemPipeCowl" Name="Pipe Cowl" />
+  <Item Id="ItemPipeCrossJunction" Name="Kit (Pipe Cross Junction)" />
+  <Item Id="ItemPipeCrossJunction3" Name="Kit (Pipe 3-Way Junction)" />
+  <Item Id="ItemPipeCrossJunction5" Name="Kit (Pipe 5-Way Junction)" />
+  <Item Id="ItemPipeCrossJunction6" Name="Kit (Pipe 6-Way Junction)" />
+  <Item Id="ItemPipeDigitalValve" Name="Kit (Digital Valve)" />
+  <Item Id="ItemPipeGasMixer" Name="Kit (Gas Mixer)" />
+  <Item Id="ItemPipeHeater" Name="Pipe Heater Kit (Gas)" />
+  <Item Id="ItemPipeIgniter" Name="Kit (Pipe Igniter)" />
+  <Item Id="ItemPipeLabel" Name="Kit (Pipe Label)" />
+  <Item Id="ItemPipeLiquidRadiator" Name="Kit (Liquid Radiator)" />
+  <Item Id="ItemPipeMeter" Name="Kit (Pipe Meter)" />
+  <Item Id="ItemPipeRadiator" Name="Kit (Radiator)" />
+  <Item Id="ItemPipeStraight" Name="Kit (Pipe Straight)" />
+  <Item Id="ItemPipeTJunction" Name="Kit (Pipe T Junction)" />
+  <Item Id="ItemPipeValve" Name="Kit (Pipe Valve)" />
+  <Item Id="ItemPipeVolumePump" Name="Kit (Volume Pump)" />
+  <Item Id="ItemPlainCake" Name="Cake" />
+  <Item Id="ItemPlantEndothermic_Creative" Name="Endothermic Plant Creative" />
+  <Item Id="ItemPlantEndothermic_Genepool1" Name="Winterspawn (Alpha strain)" />
+  <Item Id="ItemPlantEndothermic_Genepool2" Name="Winterspawn (Beta strain)" />
+  <Item Id="ItemPlantSampler" Name="Plant Sampler" />
+  <Item Id="ItemPlantSwitchGrass" Name="Switch Grass" />
+  <Item Id="ItemPlantThermogenic_Creative" Name="Thermogenic Plant Creative" />
+  <Item Id="ItemPlantThermogenic_Genepool1" Name="Hades Flower (Alpha strain)" />
+  <Item Id="ItemPlantThermogenic_Genepool2" Name="Hades Flower (Beta strain)" />
+  <Item Id="ItemPlasticSheets" Name="Plastic Sheets" />
+  <Item Id="ItemPortablesPackage" Name="Portables Package" />
+  <Item Id="ItemPotato" Name="Potato" />
+  <Item Id="ItemPotatoBaked" Name="Baked Potato" />
+  <Item Id="ItemPowderedeggs" Name="Powdered Eggs" />
+  <Item Id="ItemPowerConnector" Name="Kit (Power Connector)" />
+  <Item Id="ItemPoweredEggs" Name="Powered Eggs" />
+  <Item Id="ItemPumpkin" Name="Pumpkin" />
+  <Item Id="ItemPumpkinPie" Name="Pumpkin Pie" />
+  <Item Id="ItemPumpkinSoup" Name="Pumpkin Soup" />
+  <Item Id="ItemPureIce" Name="Pure Ice Water" />
+  <Item Id="ItemPureIceCarbonDioxide" Name="Pure Ice Carbon Dioxide" />
+  <Item Id="ItemPureIceHydrazine" Name="Pure Ice Hydrazine" />
+  <Item Id="ItemPureIceHydrochloricAcid" Name="Pure Ice Hydrochloric Acid" />
+  <Item Id="ItemPureIceHydrogen" Name="Pure Ice Hydrogen" />
+  <Item Id="ItemPureIceLiquidAlcohol" Name="Pure Ice Liquid Alcohol" />
+  <Item Id="ItemPureIceLiquidCarbonDioxide" Name="Pure Ice Liquid Carbon Dioxide" />
+  <Item Id="ItemPureIceLiquidHydrazine" Name="Pure Ice Liquid Hydrazine" />
+  <Item Id="ItemPureIceLiquidHydrochloricAcid" Name="Pure Ice Liquid Hydrochloric Acid" />
+  <Item Id="ItemPureIceLiquidHydrogen" Name="Pure Ice Liquid Hydrogen" />
+  <Item Id="ItemPureIceLiquidNitrogen" Name="Pure Ice Liquid Nitrogen" />
+  <Item Id="ItemPureIceLiquidNitrous" Name="Pure Ice Liquid Nitrous" />
+  <Item Id="ItemPureIceLiquidOxygen" Name="Pure Ice Liquid Oxygen" />
+  <Item Id="ItemPureIceLiquidOzone" Name="Pure Ice Ozone" />
+  <Item Id="ItemPureIceLiquidPollutant" Name="Pure Ice Liquid Pollutant" />
+  <Item Id="ItemPureIceLiquidSilanol" Name="Pure Ice Liquid Silanol" />
+  <Item Id="ItemPureIceLiquidSodiumChloride" Name="Salt" />
+  <Item Id="ItemPureIceLiquidVolatiles" Name="Pure Ice Liquid Methane" />
+  <Item Id="ItemPureIceNitrogen" Name="Pure Ice Nitrogen" />
+  <Item Id="ItemPureIceNitrous" Name="Pure Ice NitrousOxide" />
+  <Item Id="ItemPureIceOxygen" Name="Pure Ice Oxygen" />
+  <Item Id="ItemPureIceOzone" Name="Pure Ice Ozone" />
+  <Item Id="ItemPureIcePollutant" Name="Pure Ice Pollutant" />
+  <Item Id="ItemPureIcePollutedWater" Name="Pure Ice Polluted Water" />
+  <Item Id="ItemPureIceSilanol" Name="Pure Ice Silanol" />
+  <Item Id="ItemPureIceSteam" Name="Pure Ice Steam" />
+  <Item Id="ItemPureIceVolatiles" Name="Pure Ice Methane" />
+  <Item Id="ItemReagentMix" Name="Reagent Mix" />
+  <Item Id="ItemRemoteDetonator" Name="Remote Detonator" />
+  <Item Id="ItemResearchCapsule" Name="Research Capsule Blue" />
+  <Item Id="ItemResearchCapsuleGreen" Name="Research Capsule Green" />
+  <Item Id="ItemResearchCapsuleRed" Name="Research Capsule Red" />
+  <Item Id="ItemResearchCapsuleYellow" Name="Research Capsule Yellow" />
+  <Item Id="ItemResidentialPackage" Name="Residential Supplies Package" />
+  <Item Id="ItemReusableFireExtinguisher" Name="Fire Extinguisher (Reusable)" />
+  <Item Id="ItemRice" Name="Rice" />
+  <Item Id="ItemRoadFlare" Name="Road Flare" />
+  <Item Id="ItemRocketDeepScanningHead" Name="Rocket Surface Scanner Head" />
+  <Item Id="ItemRocketMiningDrillHead" Name="Mining-Drill Head (Basic)" />
+  <Item Id="ItemRocketMiningDrillHeadDurable" Name="Mining-Drill Head (Durable)" />
+  <Item Id="ItemRocketMiningDrillHeadHighSpeedIce" Name="Mining-Drill Head (High Speed Ice)" />
+  <Item Id="ItemRocketMiningDrillHeadHighSpeedMineral" Name="Mining-Drill Head (High Speed Mineral)" />
+  <Item Id="ItemRocketMiningDrillHeadIce" Name="Mining-Drill Head (Ice)" />
+  <Item Id="ItemRocketMiningDrillHeadLongTerm" Name="Mining-Drill Head (Long Term)" />
+  <Item Id="ItemRocketMiningDrillHeadMineral" Name="Mining-Drill Head (Mineral)" />
+  <Item Id="ItemRocketScanningHead" Name="Rocket Scanner Head" />
+  <Item Id="ItemRTG" Name="Kit (Creative RTG)" />
+  <Item Id="ItemRTGSurvival" Name="Kit (RTG)" />
+  <Item Id="ItemScanner" Name="Handheld Scanner" />
+  <Item Id="ItemScrewdriver" Name="Screwdriver" />
+  <Item Id="ItemSecurityCamera" Name="Security Camera" />
+  <Item Id="ItemSensorLenses" Name="Sensor Lenses" />
+  <Item Id="ItemSensorProcessingUnitCelestialScanner" Name="Sensor Processing Unit (Celestial Scanner)" />
+  <Item Id="ItemSensorProcessingUnitMesonScanner" Name="Sensor Processing Unit (T-Ray Scanner)" />
+  <Item Id="ItemSensorProcessingUnitOreScanner" Name="Sensor Processing Unit (Ore Scanner)" />
+  <Item Id="ItemSiliconIngot" Name="Ingot (Silicon)" />
+  <Item Id="ItemSiliconOre" Name="Ore (Silicon)" />
+  <Item Id="ItemSilverIngot" Name="Ingot (Silver)" />
+  <Item Id="ItemSilverOre" Name="Ore (Silver)" />
+  <Item Id="ItemSolderIngot" Name="Ingot (Solder)" />
+  <Item Id="ItemSolidFuel" Name="Solid Fuel (Hydrocarbon)" />
+  <Item Id="ItemSoundCartridgeBass" Name="Sound Cartridge Bass" />
+  <Item Id="ItemSoundCartridgeDrums" Name="Sound Cartridge Drums" />
+  <Item Id="ItemSoundCartridgeLeads" Name="Sound Cartridge Leads" />
+  <Item Id="ItemSoundCartridgeSynth" Name="Sound Cartridge Synth" />
+  <Item Id="ItemSoybean" Name="Soybean" />
+  <Item Id="ItemSoyOil" Name="Soy Oil" />
+  <Item Id="ItemSpaceCleaner" Name="Space Cleaner" />
+  <Item Id="ItemSpaceHelmet" Name="Space Helmet" />
+  <Item Id="ItemSpaceIce" Name="Space Ice" />
+  <Item Id="ItemSpaceOre" Name="Dirty Ore" />
+  <Item Id="ItemSpacepack" Name="Spacepack" />
+  <Item Id="ItemSprayCanBlack" Name="Spray Paint (Black)" />
+  <Item Id="ItemSprayCanBlue" Name="Spray Paint (Blue)" />
+  <Item Id="ItemSprayCanBrown" Name="Spray Paint (Brown)" />
+  <Item Id="ItemSprayCanGreen" Name="Spray Paint (Green)" />
+  <Item Id="ItemSprayCanGrey" Name="Spray Paint (Grey)" />
+  <Item Id="ItemSprayCanKhaki" Name="Spray Paint (Khaki)" />
+  <Item Id="ItemSprayCanMetallicBronze" Name="Spray Paint (Bronze)" />
+  <Item Id="ItemSprayCanMetallicGold" Name="Spray Paint (Gold)" />
+  <Item Id="ItemSprayCanMetallicObsidian" Name="Spray Paint (Obsidian)" />
+  <Item Id="ItemSprayCanMetallicSilver" Name="Spray Paint (Silver)" />
+  <Item Id="ItemSprayCanOrange" Name="Spray Paint (Orange)" />
+  <Item Id="ItemSprayCanPink" Name="Spray Paint (Pink)" />
+  <Item Id="ItemSprayCanPurple" Name="Spray Paint (Purple)" />
+  <Item Id="ItemSprayCanRed" Name="Spray Paint (Red)" />
+  <Item Id="ItemSprayCanWhite" Name="Spray Paint (White)" />
+  <Item Id="ItemSprayCanYellow" Name="Spray Paint (Yellow)" />
+  <Item Id="ItemSprayGun" Name="Spray Gun" />
+  <Item Id="ItemSteelFrames" Name="Steel Frames" />
+  <Item Id="ItemSteelIngot" Name="Ingot (Steel)" />
+  <Item Id="ItemSteelSheets" Name="Steel Sheets" />
+  <Item Id="ItemStelliteGlassSheets" Name="Stellite Glass Sheets" />
+  <Item Id="ItemStelliteIngot" Name="Ingot (Stellite)" />
+  <Item Id="ItemStrawberry" Name="Strawberry" />
+  <Item Id="ItemSugar" Name="Sugar" />
+  <Item Id="ItemSugarCane" Name="Sugarcane" />
+  <Item Id="ItemSuitAdvancedAC" Name="Advanced AC Suit" />
+  <Item Id="ItemSuitEmergency" Name="Emergency Suit" />
+  <Item Id="ItemSuitHard" Name="Hard Suit" />
+  <Item Id="ItemSuitHARM" Name="HARM Suit" />
+  <Item Id="ItemSuitHelmetHARM" Name="HARM Helmet" />
+  <Item Id="ItemSuitInsulated" Name="Insulated Suit" />
+  <Item Id="ItemSuitModCryogenicUpgrade" Name="Cryogenic Suit Upgrade" />
+  <Item Id="ItemSuitNormal" Name="Normal Suit" />
+  <Item Id="ItemSuitSpace" Name="Space Suit" />
+  <Item Id="ItemSuitStorage" Name="Kit (Suit Storage)" />
+  <Item Id="ItemSurvivalBelt" Name="Survival Belt" />
+  <Item Id="ItemTablet" Name="Handheld Tablet" />
+  <Item Id="ItemTankConnector" Name="Kit (Tank Connector)" />
+  <Item Id="ItemTankConnectorLiquid" Name="Kit (Liquid Tank Connector)" />
+  <Item Id="ItemTerrainEditor" Name="Terrain Editor Tool" />
+  <Item Id="ItemTerrainManipulator" Name="Terrain Manipulator" />
+  <Item Id="ItemTomato" Name="Tomato" />
+  <Item Id="ItemTomatoSoup" Name="Tomato Soup" />
+  <Item Id="ItemToolBelt" Name="Tool Belt" />
+  <Item Id="ItemTropicalPlant" Name="Tropical Lily" />
+  <Item Id="ItemUraniumOre" Name="Ore (Uranium)" />
+  <Item Id="ItemVolatiles" Name="Ice (Volatiles)" />
+  <Item Id="ItemVoxelTool" Name="Voxel Tool" />
+  <Item Id="ItemWallCooler" Name="Kit (Wall Cooler)" />
+  <Item Id="ItemWallHeater" Name="Kit (Wall Heater)" />
+  <Item Id="ItemWallLight" Name="Kit (Lights)" />
+  <Item Id="ItemWaspaloyIngot" Name="Ingot (Waspaloy)" />
+  <Item Id="ItemWasteBagEmpty" Name="Waste Bag" />
+  <Item Id="ItemWasteBagFilled" Name="Waste Bag (Filled)" />
+  <Item Id="ItemWasteIngot" Name="Ingot (Waste)" />
+  <Item Id="ItemWaterBottle" Name="Water Bottle" />
+  <Item Id="ItemWaterBottleBag" Name="Water Bottle Bag" />
+  <Item Id="ItemWaterBottleFiller" Name="Water Bottle Filler" />
+  <Item Id="ItemWaterBottlePackage" Name="Water Bottle Package" />
+  <Item Id="ItemWatermelon" Name="Watermelon" />
+  <Item Id="ItemWaterPacket" Name="Water Packet" />
+  <Item Id="ItemWaterPipeDigitalValve" Name="Kit (Liquid Digital Valve)" />
+  <Item Id="ItemWaterPipeHeater" Name="Pipe Heater Kit (Liquid)" />
+  <Item Id="ItemWaterPipeMeter" Name="Kit (Liquid Pipe Meter)" />
+  <Item Id="ItemWaterWallCooler" Name="Kit (Liquid Wall Cooler)" />
+  <Item Id="ItemWearLamp" Name="Headlamp" />
+  <Item Id="ItemWeldingTorch" Name="Welding Torch" />
+  <Item Id="ItemWheat" Name="Wheat" />
+  <Item Id="ItemWireCutters" Name="Wire Cutters" />
+  <Item Id="ItemWirelessBatteryCellExtraLarge" Name="Wireless Battery Cell Extra Large" />
+  <Item Id="ItemWreckage" Name="Wreckage" />
+  <Item Id="ItemWreckageAirlock" Name="Wreckage" />
+  <Item Id="ItemWreckageArcFurnce" Name="Wreckage" />
+  <Item Id="ItemWreckageAreaPowerControl1" Name="Wreckage" />
+  <Item Id="ItemWreckageAreaPowerControl2" Name="Wreckage" />
+  <Item Id="ItemWreckageAutolathe" Name="Wreckage" />
+  <Item Id="ItemWreckageBin" Name="Wreckage" />
+  <Item Id="ItemWreckageBlastDoor" Name="Wreckage" />
+  <Item Id="ItemWreckageCentrifuge1" Name="Wreckage" />
+  <Item Id="ItemWreckageCentrifuge2" Name="Wreckage" />
+  <Item Id="ItemWreckageChuteExport" Name="Wreckage" />
+  <Item Id="ItemWreckageCoalGenerator1" Name="Wreckage" />
+  <Item Id="ItemWreckageCoalGenerator2" Name="Wreckage" />
+  <Item Id="ItemWreckageCompositeDoor1" Name="Wreckage" />
+  <Item Id="ItemWreckageCompositeDoorGlass1" Name="Wreckage" />
+  <Item Id="ItemWreckageCornerSmall" Name="Wreckage" />
+  <Item Id="ItemWreckageDoorControlPanel" Name="Wreckage" />
+  <Item Id="ItemWreckageElectrolysis" Name="Wreckage" />
+  <Item Id="ItemWreckageElectronicPrinter" Name="Wreckage" />
+  <Item Id="ItemWreckageElevator" Name="Wreckage" />
+  <Item Id="ItemWreckageElevatorLevelFront1" Name="Wreckage" />
+  <Item Id="ItemWreckageGasGenerator1" Name="Wreckage" />
+  <Item Id="ItemWreckageGasGenerator2" Name="Wreckage" />
+  <Item Id="ItemWreckageH2Combustor1" Name="Wreckage" />
+  <Item Id="ItemWreckageHalfSteelBumper" Name="Wreckage" />
+  <Item Id="ItemWreckageHydroponicsStation" Name="Wreckage" />
+  <Item Id="ItemWreckageLargeExtendableRadiator" Name="Wreckage" />
+  <Item Id="ItemWreckageLight1" Name="Wreckage" />
+  <Item Id="ItemWreckageLight2" Name="Wreckage" />
+  <Item Id="ItemWreckagePowerPiece0" Name="Wreckage" />
+  <Item Id="ItemWreckagePowerPiece1" Name="Wreckage" />
+  <Item Id="ItemWreckageRecycler0" Name="Wreckage" />
+  <Item Id="ItemWreckageRecycler1" Name="Wreckage" />
+  <Item Id="ItemWreckageSatelliteDish0" Name="Wreckage" />
+  <Item Id="ItemWreckageSatelliteDish1" Name="Wreckage" />
+  <Item Id="ItemWreckageSDBSilo" Name="Wreckage" />
+  <Item Id="ItemWreckageSecurityPrinter" Name="Wreckage" />
+  <Item Id="ItemWreckageSmallFan" Name="Wreckage" />
+  <Item Id="ItemWreckageSolarPanelBase" Name="Wreckage" />
+  <Item Id="ItemWreckageSolarPanelFragment" Name="Wreckage" />
+  <Item Id="ItemWreckageSolarPanelLarge" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelBar" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelBumper" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelFragmentMedium" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelFragmentSmall" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPanel0" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPanel1" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPanel2" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPanel3" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPieceMedium" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPlate0" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPlate1" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelPlate2" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelSlabSmall" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelStrip0" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelStrip1" Name="Wreckage" />
+  <Item Id="ItemWreckageSteelStrip2" Name="Wreckage" />
+  <Item Id="ItemWreckageStructureWeatherStation" Name="Wreckage" />
+  <Item Id="ItemWreckageVendingMachine1" Name="Wreckage" />
+  <Item Id="ItemWreckageVendingMachine2" Name="Wreckage" />
+  <Item Id="ItemWreckageWindTurbine1" Name="Wreckage" />
+  <Item Id="ItemWreckageWindTurbine2" Name="Wreckage" />
+  <Item Id="ItemWreckageWindTurbine3" Name="Wreckage" />
+  <Item Id="ItemWrench" Name="Wrench" />
+</Items>

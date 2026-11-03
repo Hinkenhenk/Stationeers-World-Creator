@@ -1,0 +1,19 @@
+# Local build output and installed mod copies
+**/bin/
+**/obj/
+**/dist/
+
+# Decompiled game source and local research/build state
+/research/decompiled/
+/backups/
+/.dotnet_cli_home/
+/.dotnet-home/
+/.tmp-ilcompare/
+/.tokensave/
+**/.dotnet-home/
+
+# IDE and machine-local files
+.vs/
+*.user
+*.suo
+*.log
