@@ -6,9 +6,9 @@ An in-game world editor for Stationeers. Create a world from scratch, start from
 
 Requires Stationeers, BepInEx 5 and [StationeersLaunchPad](https://stationeerslaunchpad.github.io/).
 
-1. Download **WorldCreator-0.2.153.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest).
+1. Download **WorldCreator-0.2.154.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest).
 2. Close Stationeers and extract the `WorldCreator` folder into `Documents\My Games\Stationeers\mods`.
-3. Enable **StationeersWorldCreator** in your LaunchPad profile, then open **World Creator** from the game's main menu.
+3. Enable **StationeersWorldCreator** in your LaunchPad profile, then open **Create World** from the game's main menu.
 
 The installed folder should contain:
 

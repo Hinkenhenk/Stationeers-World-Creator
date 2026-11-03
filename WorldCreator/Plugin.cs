@@ -17,7 +17,7 @@ namespace WorldCreator
         {
             _harmony = new Harmony(PluginGuid);
             _harmony.PatchAll(typeof(Plugin).Assembly);
-            Logger.LogInfo("Loaded. The World Creator button will appear on the main menu.");
+            Logger.LogInfo("Loaded. The Create World button will appear on the main menu.");
         }
 
         private void OnDestroy()
