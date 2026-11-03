@@ -13,7 +13,7 @@ namespace WorldCreator.Mod
             ("1. Begin with a blank world",
                 "Choose Create a New World on the World Creator start page. A blank world has basic editable settings, a temperature curve and a default starting-profile reference. It does not generate a complete custom terrain. You can build it without applying an original-world preset."),
             ("2. Give the world an identity",
-                "On Overview, enter a display name such as First World and an ID such as WC_FirstWorld. The ID must begin with WC_ and contain only letters, numbers or underscores. Add a description and choose gravity. For example, -3.7 means a weaker downward pull than -9.81. Keep the same World ID while finishing this project."),
+                "On Overview, enter a display name such as First World and a unique ID such as FirstWorld. The editor accepts 1–47 letters, numbers or underscores. No prefix is required; WC_ is only an optional naming convention. Add a description and choose gravity. For example, -3.7 means a weaker downward pull than -9.81. Keep the same World ID while finishing this project."),
             ("3. Supply the terrain",
                 "Open Terrain, then Open Terrain Tools. World Creator hides so you can use the game's terrain utility. Import and compile terrain with the size expected by this world, saving its indexed Terrain<number>.dat files to a folder. Reopen World Creator from the main menu, enter that folder on Terrain and choose Use compiled terrain. A painted region map alone does not create terrain geometry."),
             ("4. Set the orbit and landing reference",
@@ -35,7 +35,7 @@ namespace WorldCreator.Mod
                 ("What Overview is for",
                     "Overview identifies the world and sets its main presentation options. The World Project header refers to the same project on every page. The summary tiles count or display existing settings; they are not separate inputs. Continue building buttons take you to the page that edits each part."),
                 ("Display name, World ID and description",
-                    "Display name is the name players see in the world menu. World ID is the identifier used by XML references and the generated mod; begin it with WC_ and use letters, numbers and underscores. Description is the longer text shown for the world. The multiline box accepts several paragraphs. Names are readable text; IDs must remain exact and unique."),
+                    "Display name is the name players see in the world menu. World ID is the identifier used by XML references and the generated mod. Choose a unique ID with 1–47 letters, numbers or underscores; no prefix is required. WC_ is optional. Avoid reusing an ID from another installed world. Description is the longer text shown for the world. The multiline box accepts several paragraphs. Names are readable text; IDs must remain exact and unique."),
                 ("Gravity",
                     "Gravity uses metres per second squared. Stationeers world definitions use a negative value for downward gravity: -9.81 has a stronger pull than -3.7. Change the value itself to alter the world. Orbiting the preview camera or changing the planet's displayed size does not change gravity."),
                 ("Starting from an original world",
@@ -50,7 +50,7 @@ namespace WorldCreator.Mod
             new (string Title, string Body)[]
             {
                 ("Gas amounts and composition",
-                    "Choose a gas from the dropdown, enter Amount (mol), then press Add gas. The amount is moles per 8,000-litre atmosphere cell, not a percentage. Edit the listed quantities to change the mixture. The colored composition bar always represents the whole mixture; the legend reports each gas's share and amount. Gas temperature is controlled by the world temperature settings rather than a separate temperature for each added gas."),
+                    "Choose a gas from the dropdown, enter Amount (mol), then press Add gas. The amount is moles per 8,000-litre atmosphere cell, not a percentage. Edit the listed quantities to change the mixture. Remove gas beside a gas entry deletes it from this world's atmosphere; it can be added again from the dropdown. Removing every gas creates a vacuum mixture. The colored composition bar always represents the whole mixture; the legend reports each gas's share and amount. Gas temperature is controlled by the world temperature settings rather than a separate temperature for each added gas."),
                 ("Pressure estimate",
                     "The reference temperature beside Pressure estimate is only a calculator input. It does not edit the world temperature. The result is a gas-only ideal-gas estimate rather than a complete simulation of liquid content or phase changes. Empty or invalid inputs show - kPa. Actual in-game pressure also depends on atmospheric conditions and changes between gas and liquid."),
                 ("Base temperature and sun angle",

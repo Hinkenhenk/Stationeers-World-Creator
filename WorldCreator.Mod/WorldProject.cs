@@ -714,6 +714,31 @@ namespace WorldCreator.Mod
             _structureChanged = true;
         }
 
+        internal void RemoveGas(string type)
+        {
+            var gas = _world.Element("GlobalAtmosphere")?.Element("Gas");
+            var entry = gas?.Elements("Gas").FirstOrDefault(element => (string?)element.Attribute("Type") == type)
+                ?? throw new InvalidOperationException(type + " is not in the atmosphere.");
+            var entryPath = "World/World/GlobalAtmosphere/Gas/Gas" + (gas!.Elements("Gas").Count() > 1
+                ? " #" + (entry.ElementsBeforeSelf("Gas").Count() + 1).ToString(CultureInfo.InvariantCulture) : "");
+            var remainingAdvanced = AdvancedFields.Where(field => field.Label.StartsWith("World/World/GlobalAtmosphere/Gas/", StringComparison.Ordinal) &&
+                !field.Label.StartsWith(entryPath + "/", StringComparison.Ordinal)).ToArray();
+            var remaining = AtmosphereFields.Where(field => field.Label.StartsWith("Atmosphere/GlobalAtmosphere/Gas/", StringComparison.Ordinal) &&
+                !field.Label.Contains("[" + type + "]")).ToArray();
+            // Commit retained drafts before rebuilding the gas paths, whose numbered indices can change.
+            foreach (var field in remainingAdvanced.Concat(remaining)) field.Validate();
+            foreach (var field in remainingAdvanced.Concat(remaining)) field.Apply();
+            entry.Remove();
+            AdvancedFields.RemoveAll(field => field.Label.StartsWith("World/World/GlobalAtmosphere/Gas/", StringComparison.Ordinal));
+            AtmosphereFields.RemoveAll(field => field.Label.StartsWith("Atmosphere/GlobalAtmosphere/Gas/", StringComparison.Ordinal));
+            foreach (var retained in gas.Elements("Gas"))
+            {
+                AddAllFields(AdvancedFields, retained, "World/World/GlobalAtmosphere/Gas");
+                AddEditableTree(AtmosphereFields, retained, "Atmosphere/GlobalAtmosphere/Gas");
+            }
+            _structureChanged = true;
+        }
+
         internal bool HasTemperatureCurve => _world.Element("GlobalAtmosphere")?.Element("Temperature") != null;
 
         internal XElement CreateAtmosphereSnapshot()
@@ -1557,14 +1582,17 @@ namespace WorldCreator.Mod
             foreach (var child in element.Elements()) AddAllFields(fields, child, label);
         }
 
+        internal static bool IsValidWorldId(string id) => Regex.IsMatch(id, @"\A[A-Za-z0-9_]{1,47}\z") &&
+            !Regex.IsMatch(id, @"\A(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])\z", RegexOptions.IgnoreCase);
+
         internal List<(bool IsError, string Text)> ValidateForExport(string modsDirectory, string id, string displayName)
         {
             var issues = new List<(bool IsError, string Text)>();
-            if (!Regex.IsMatch(id, @"^WC_[A-Za-z0-9_]{1,44}$"))
-                issues.Add((true, "World ID must start with WC_ and contain only letters, digits and underscores (max 47 characters)."));
+            if (!IsValidWorldId(id))
+                issues.Add((true, "World ID must contain 1–47 letters, digits or underscores and cannot be a reserved filename such as CON or NUL. No prefix is required."));
             if (string.IsNullOrWhiteSpace(displayName) || displayName.Length > 80)
                 issues.Add((true, "Enter a world name of up to 80 characters."));
-            if (Regex.IsMatch(id, @"^WC_[A-Za-z0-9_]{1,44}$") && !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 80 &&
+            if (IsValidWorldId(id) && !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 80 &&
                 Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
                 issues.Add((true, "A mod with this ID already exists. Choose a new ID."));
             var fields = AdvancedFields.Concat(WorldFields).Concat(AtmosphereFields).Concat(WeatherFields).Concat(OrbitFields).Concat(ResourceFields);
@@ -1582,7 +1610,7 @@ namespace WorldCreator.Mod
 
         internal string Export(string modsDirectory, string id, string displayName)
         {
-            if (Regex.IsMatch(id, @"^WC_[A-Za-z0-9_]{1,44}$") && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
+            if (IsValidWorldId(id) && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
                 throw new IOException("A mod with this ID already exists. Choose a new ID.");
             var issue = ValidateForExport(modsDirectory, id, displayName).FirstOrDefault(item => item.IsError);
             if (issue.IsError) throw new InvalidOperationException(issue.Text);

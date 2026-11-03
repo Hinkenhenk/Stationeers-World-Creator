@@ -2,9 +2,9 @@
 
 An in-game BepInEx mod for creating and editing custom Stationeers worlds.
 
-Current version: **0.2.148**.
+Current version: **0.2.150**.
 
-Download the ready-to-install **WorldCreator-0.2.148.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest). BepInEx 5 and StationeersLaunchPad must already be installed.
+Download the ready-to-install **WorldCreator-0.2.150.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest). BepInEx 5 and StationeersLaunchPad must already be installed.
 
 Extract the ZIP into `Documents\My Games\Stationeers\mods`. The result should be `mods\WorldCreator\About\About.xml` and `mods\WorldCreator\WorldCreator.Mod.dll`. Enable StationeersWorldCreator in LaunchPad, then open World Creator from the main menu.
 
@@ -24,4 +24,7 @@ The climate preview works on an isolated copy of the project atmosphere. It excl
 The source and build/install notes are in [WorldCreator.Mod](WorldCreator.Mod/README.md). Verification checks are in [WorldCreator.Mod.Checks](WorldCreator.Mod.Checks/Program.cs).
 
 Game DLLs, textures, decompiled sources, research inventories, and old archives are not included. The release ZIP contains only the mod DLL, metadata, and installation notes.
+
+
+Build 0.2.150 adds Remove gas controls, a square Map Studio preview, and separate cards for region sets and their regions. World IDs no longer require WC_; help, tooltips and validation agree. Gas removal and World ID XML/export checks passed. The UI changes still need an in-game review. The broader suite reports a missing texture when re-exporting a loaded custom map.
 

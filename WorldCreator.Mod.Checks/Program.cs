@@ -17,6 +17,26 @@ var previousWeatherLibrary = Environment.GetEnvironmentVariable("WORLD_CREATOR_W
 Environment.SetEnvironmentVariable("WORLD_CREATOR_WEATHER_LIBRARY", Path.Combine(temp, "WeatherLibrary"));
 try
 {
+    var idProject = WorldProject.CreateBlank(assets);
+    foreach (var id in new[] { "FirstWorld", "My_World2", "WC_Existing", new string('A', 47) })
+        if (idProject.ValidateForExport(temp, id, "ID Check").Any(issue => issue.IsError))
+            throw new Exception("A valid world ID was rejected: " + id);
+    foreach (var id in new[] { "", "../Outside", "My World", "World/Other", "FirstWorld\n", new string('A', 48), "CON", "nul" })
+        if (!idProject.ValidateForExport(temp, id, "ID Check").Any(issue => issue.IsError))
+            throw new Exception("An unsafe world ID was accepted: " + id);
+    var idTarget = idProject.Export(temp, "FirstWorld", "First World");
+    var idWorld = XDocument.Load(Path.Combine(idTarget, "GameData", "world.xml")).Descendants("World").Single();
+    if ((string?)idWorld.Attribute("Id") != "FirstWorld" || (string?)idWorld.Element("TerrainSettings")?.Attribute("Path") != "Worlds/FirstWorld/Terrain")
+        throw new Exception("A world ID without a prefix was not preserved in the generated XML and paths.");
+    if (!idProject.ValidateForExport(temp, "FirstWorld", "First World").Any(issue => issue.IsError && issue.Text.Contains("already exists")))
+        throw new Exception("Collision protection is missing for world IDs without a prefix.");
+    try { idProject.Export(temp, "FirstWorld", "First World"); throw new Exception("An existing unprefixed world was overwritten."); }
+    catch (IOException) { }
+    if (args.Contains("--world-id"))
+    {
+        Console.WriteLine("World ID checks passed: optional prefix, safe names, length limits, exported XML/paths and collision protection.");
+        return;
+    }
     var project = new WorldProject(assets, "Mars2/Mars2.xml");
     if (string.IsNullOrWhiteSpace(project.MiniMapAssetPath) || project.PointOfInterestCount == 0 || project.TerrainWorldSize == "(not set)") throw new Exception("World overview data missing");
     if (project.MapLayers.Count == 0) throw new Exception("Region map layers missing");
@@ -50,6 +70,41 @@ try
         Console.WriteLine("Climate snapshot checks passed: edited values, reverted values, independent snapshots and invalid gas rejection.");
         return;
     }
+    var gasRemoval = WorldProject.CreateBlank(assets);
+    gasRemoval.AddGas("CarbonDioxide", 1);
+    gasRemoval.AddGas("Oxygen", 2);
+    gasRemoval.AddGas("Nitrogen", 3);
+    gasRemoval.AtmosphereFields.Single(field => field.Label.Contains("[Nitrogen]") && field.Label.EndsWith(" / Quantity")).Value = "7";
+    gasRemoval.RemoveGas("CarbonDioxide");
+    gasRemoval.AtmosphereFields.Single(field => field.Label.Contains("[Oxygen]") && field.Label.EndsWith(" / Quantity")).Value = "invalid";
+    gasRemoval.RemoveGas("Oxygen");
+    var retainedGas = gasRemoval.CreateAtmosphereSnapshot().Element("Gas")!.Elements("Gas").Single();
+    if ((string?)retainedGas.Attribute("Type") != "Nitrogen" || (string?)retainedGas.Attribute("Quantity") != "7" ||
+        gasRemoval.AdvancedFields.Any(field => field.Label.Contains("/GlobalAtmosphere/Gas/Gas #")))
+        throw new Exception("Removing a gas lost retained drafts or left stale numbered fields.");
+    gasRemoval.RemoveGas("Nitrogen");
+    if (gasRemoval.CreateAtmosphereSnapshot().Element("Gas")!.Elements("Gas").Any() ||
+        gasRemoval.AtmosphereFields.Any(field => field.Label.Contains("/Gas/Gas")) ||
+        gasRemoval.AdvancedFields.Any(field => field.Label.Contains("/GlobalAtmosphere/Gas/Gas")))
+        throw new Exception("Removing the final gas did not create an empty mixture.");
+    gasRemoval.AddGas("Oxygen", 0);
+    var gasRemovalTarget = gasRemoval.Export(temp, "WC_GasRemoval", "Gas Removal Check");
+    var exportedGas = XDocument.Load(Path.Combine(gasRemovalTarget, "GameData", "world.xml")).Descendants("GlobalAtmosphere").Single().Element("Gas")!.Elements("Gas").Single();
+    if ((string?)exportedGas.Attribute("Type") != "Oxygen" || (string?)exportedGas.Attribute("Quantity") != "0")
+        throw new Exception("A removed gas reappeared in the exported world.");
+    gasRemoval.RemoveGas("Oxygen");
+    if (!gasRemoval.HasChanges) throw new Exception("Gas removal was not marked as a project change.");
+    var originalGasRemoval = new WorldProject(assets, "Mars2/Mars2.xml");
+    originalGasRemoval.RemoveGas("CarbonDioxide");
+    if (originalGasRemoval.CreateAtmosphereSnapshot().Element("Gas")!.Elements("Gas").Any(gas => (string?)gas.Attribute("Type") == "CarbonDioxide") ||
+        originalGasRemoval.AdvancedFields.Count(field => field.Label.Contains("/GlobalAtmosphere/Gas/Gas") && field.Label.EndsWith("/@Quantity")) != 3)
+        throw new Exception("Removing a template gas left stale Advanced fields.");
+    if (args.Contains("--gas-removal"))
+    {
+        Console.WriteLine("Gas removal checks passed: retained edits, invalid entry removal, empty mixture, re-adding, exported XML and template Advanced fields.");
+        return;
+    }
+
     var blank = WorldProject.CreateBlank(assets);
     var blankReadiness = blank.ValidateForExport(temp, "WC_BlankCheck", "Blank Check");
     if (blankReadiness.Any(issue => issue.IsError) || !blankReadiness.Any(issue => issue.Text.Contains("no compiled terrain")))

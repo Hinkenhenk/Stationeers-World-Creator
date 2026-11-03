@@ -4,7 +4,7 @@ A prebuilt package is available from [GitHub Releases](https://github.com/Hinken
 
 ## Install the package
 
-Close Stationeers. Extract `WorldCreator-0.2.148.zip` into `Documents\My Games\Stationeers\mods`, replacing the existing WorldCreator DLL and About metadata. Keep one installed copy; store old builds outside the game's mod folders. Enable StationeersWorldCreator in your LaunchPad profile and open World Creator from the main menu.
+Close Stationeers. Extract `WorldCreator-0.2.150.zip` into `Documents\My Games\Stationeers\mods`, replacing the existing WorldCreator DLL and About metadata. Keep one installed copy; store old builds outside the game's mod folders. Enable StationeersWorldCreator in your LaunchPad profile and open World Creator from the main menu.
 
 ## Build from source
 
@@ -29,4 +29,7 @@ dotnet run --project WorldCreator.Mod.Checks -- --climate-snapshot
 ```
 
 The release build and focused checks pass. The full existing export suite currently encounters a Windows directory-move access error on the development machine. The Unity graphs, editing and tooltips have been checked in-game using the WC profile. Page Help and its foreground input behavior were checked in-game.
+
+
+0.2.150: Added gas removal, a square map preview, and cards separating region sets and individual regions. WC_ is optional for World IDs. The build, gas-removal checks and World ID export/collision checks passed; UI changes need in-game review. Re-exporting a loaded custom map currently fails the broader checks because a referenced texture is not packaged.
 

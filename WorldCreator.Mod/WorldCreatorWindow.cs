@@ -106,6 +106,7 @@ namespace WorldCreator.Mod
         private int _pendingScreen = -1;
         private int _pendingPage = -1;
         private bool _pendingClose;
+        private string? _pendingGasRemoval;
         private bool _discardConfirmed;
         private string? _hoverTooltip;
         private string? _temperatureDragPath;
@@ -200,7 +201,6 @@ namespace WorldCreator.Mod
         private string? _mapUndoLayerId;
         private bool _mapUndoLayerHadEdits;
         private Vector2 _mapLayerScroll;
-        private Vector2 _mapRegionScroll;
         private int _mapMaskAssetSelection;
 
         private void Awake()
@@ -296,6 +296,13 @@ namespace WorldCreator.Mod
                 if (_pendingScreen >= 0) { _screen = _pendingScreen; _pendingScreen = -1; }
                 if (_pendingPage >= 0) { _page = _pendingPage; _pendingPage = -1; }
                 ApplyHelpNavigation();
+                if (_pendingGasRemoval != null)
+                {
+                    var type = _pendingGasRemoval;
+                    _pendingGasRemoval = null;
+                    try { _project!.RemoveGas(type); _status = "Removed " + type + " from this world's atmosphere."; }
+                    catch (Exception e) { _status = e.Message; }
+                }
             }
             GUI.Window(904521, _window, DrawWindow, GUIContent.none, _windowStyle!);
             if (_helpOpen) DrawHelpOverlay();
@@ -891,7 +898,8 @@ namespace WorldCreator.Mod
                 if (!weatherFieldsRendered && fields.Count > 0)
                 {
                     if (_page == 0 || _page == 4 || _page == 6 || _page == 7) GUILayout.Space(CardSpacing);
-                    DrawFieldCards(fields);
+                    if (_page == 7) DrawMapFieldCards(fields);
+                    else DrawFieldCards(fields);
                 }
             }
             if (_page == 1 && _project != null)
@@ -950,10 +958,10 @@ namespace WorldCreator.Mod
             }
         }
 
-        private void DrawGroupedField(WorldProject.Field field)
+        private void DrawGroupedField(WorldProject.Field field, bool? includeContext = null)
         {
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-            var fieldLabel = new GUIContent(ReadableFieldLabel(field.Label, _page == 6 || _page == 7) + "  ⓘ", field.Tooltip);
+            var fieldLabel = new GUIContent(ReadableFieldLabel(field.Label, includeContext ?? (_page == 6 || _page == 7)) + "  ⓘ", field.Tooltip);
             GUILayout.Label(fieldLabel, _mutedStyle!);
             RegisterHoverTooltip(GUILayoutUtility.GetLastRect(), field.Tooltip);
             if (field.IsBoolean)
@@ -1013,8 +1021,8 @@ namespace WorldCreator.Mod
             _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
             GUILayout.EndVertical();
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
-            _id = TooltipTextField(_id, "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores.", 0, 30, 48);
+            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds."), _mutedStyle!);
+            _id = TooltipTextField(_id, "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds.", 0, 30, 47);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             GUILayout.Space(6);
@@ -1113,8 +1121,8 @@ namespace WorldCreator.Mod
             _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
             GUILayout.EndVertical();
             GUILayout.BeginVertical(GUILayout.Width(240));
-            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
-            _id = TooltipTextField(_id, "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores.", 0, 30, 48);
+            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds."), _mutedStyle!);
+            _id = TooltipTextField(_id, "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds.", 0, 30, 47);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
@@ -1571,7 +1579,8 @@ namespace WorldCreator.Mod
         private void DrawGasComposition()
         {
             var mixture = new List<(string Id, string Name, double Quantity)>();
-            foreach (var field in _project!.AtmosphereFields.Where(f => f.Label.Contains("/Gas/Gas") && f.Label.EndsWith(" / Quantity")))
+            var gasFields = _project!.AtmosphereFields.Where(f => f.Label.Contains("/Gas/Gas") && f.Label.EndsWith(" / Quantity")).ToArray();
+            foreach (var field in gasFields)
             {
                 var gas = GasForField(field);
                 if (gas == null || !double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var quantity) ||
@@ -1580,7 +1589,7 @@ namespace WorldCreator.Mod
             }
             var total = mixture.Sum(g => g.Quantity);
             GUILayout.Label("Gas composition by quantity");
-            if (total <= 0) { GUILayout.Label("No gas quantity to display."); return; }
+            if (total <= 0) GUILayout.Label("No gas quantity to display.");
             GUILayout.BeginHorizontal();
             var compositionWidth = Mathf.Min(600f, Mathf.Max(280f, _window.width * .28f));
             GUILayout.BeginVertical(GUILayout.Width(compositionWidth));
@@ -1591,7 +1600,7 @@ namespace WorldCreator.Mod
             var previous = GUI.color;
             for (var i = 0; i < mixture.Count; i++)
             {
-                var segment = (float)(width * mixture[i].Quantity / total);
+                var segment = total > 0 ? (float)(width * mixture[i].Quantity / total) : 0f;
                 GUI.color = GasColor(mixture[i].Id);
                 GUI.DrawTexture(new Rect(x, bar.y + 2, segment, bar.height - 4), Texture2D.whiteTexture);
                 x += segment;
@@ -1601,16 +1610,27 @@ namespace WorldCreator.Mod
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.Space(8);
-            foreach (var gas in mixture.OrderByDescending(g => g.Quantity))
+            string? removeGas = null;
+            foreach (var field in gasFields)
             {
+                var gas = GasForField(field);
+                if (gas == null) continue;
                 GUILayout.BeginHorizontal();
                 var swatch = GUILayoutUtility.GetRect(12, 12, GUILayout.Width(12), GUILayout.Height(12));
                 GUI.color = GasColor(gas.Id);
                 GUI.DrawTexture(swatch, Texture2D.whiteTexture);
                 GUI.color = previous;
                 GUILayout.Space(6);
-                GUILayout.Label(gas.Name + "  " + (100 * gas.Quantity / total).ToString("0.0", CultureInfo.InvariantCulture) + "%  (" + gas.Quantity.ToString("0.##", CultureInfo.InvariantCulture) + " mol)", _mutedStyle!);
+                var quantity = mixture.FirstOrDefault(item => item.Id == gas.Id).Quantity;
+                var share = total > 0 ? (100 * quantity / total).ToString("0.0", CultureInfo.InvariantCulture) + "%  ·  " : "";
+                GUILayout.Label(gas.Name + "  " + share + field.Value + " mol", _mutedStyle!);
+                if (NativeButton("Remove gas", _buttonStyle!, GUILayout.Width(105))) removeGas = gas.Id;
                 GUILayout.EndHorizontal();
+            }
+            if (removeGas != null)
+            {
+                var type = removeGas;
+                _pendingGasRemoval = type;
             }
         }
 
@@ -3283,7 +3303,7 @@ namespace WorldCreator.Mod
             var baseMapImage = _mapReferencePreview ?? _mapPreview;
             if (baseMapImage == null) GUILayout.Label("Blank geographic canvas. Add a PNG/JPG from the Asset library if you want a visual guide.", _mutedStyle!);
             {
-                var rect = GUILayoutUtility.GetRect(100, 300, GUILayout.ExpandWidth(true));
+                var rect = GUILayoutUtility.GetAspectRect(1f, GUILayout.ExpandWidth(true));
                 GUI.Box(rect, "");
                 var aspect = baseMapImage == null ? 1f : (float)baseMapImage.width / Math.Max(1, baseMapImage.height);
                 var width = Math.Min(rect.width - 16, (rect.height - 16) * aspect);
@@ -3366,10 +3386,16 @@ namespace WorldCreator.Mod
             }
             foreach (var layer in _project.MapLayers.Where(layer => _selectedMapLayers.Contains(layer.Id)))
             {
-                GUILayout.Label(layer.Id + " regions", _mutedStyle!);
-                _mapRegionScroll = GUILayout.BeginScrollView(_mapRegionScroll, GUILayout.Height(Math.Min(160, Math.Max(50, layer.Regions.Count * 20))));
+                GUILayout.Space(CardSpacing);
+                GUILayout.BeginVertical(_rowStyle!, GUILayout.ExpandWidth(true));
+                GUILayout.Label(HumanizeXmlName(layer.Id), _sectionStyle!);
+                GUILayout.Label((_project.IsGeographicLayer(layer.Id) ? "Geographic regions" : "Region mask") + " · " + layer.Regions.Count + " regions", _mutedStyle!);
+                _mapRegionScrolls.TryGetValue(layer.Id, out var regionScroll);
+                _mapRegionScrolls[layer.Id] = GUILayout.BeginScrollView(regionScroll, GUILayout.Height(Math.Min(360, Math.Max(90, layer.Regions.Count * 90))));
                 foreach (var region in layer.Regions)
                 {
+                    GUILayout.Space(CardSpacing);
+                    GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
                     GUILayout.BeginHorizontal();
                     var swatch = GUILayoutUtility.GetRect(14, 14, GUILayout.Width(14), GUILayout.Height(14));
                     var oldColor = GUI.color;
@@ -3378,6 +3404,8 @@ namespace WorldCreator.Mod
                     GUI.color = oldColor;
                     var regionName = _project.GetMapRegionName(region);
                     if (region.NameKey != null) _project.SetMapRegionName(region, GUILayout.TextField(regionName, _inputStyle!, GUILayout.MinWidth(80)));
+                    else GUILayout.Label(HumanizeXmlName(region.Id), _mutedStyle!);
+                    GUILayout.EndHorizontal();
                     var selectedRegion = _paintLayerId == layer.Id && _paintRegionId == region.Id;
                     if (NativeButton((selectedRegion ? "Selected  " : "Select  ") + region.Id, _buttonStyle!, GUILayout.Height(24)))
                     {
@@ -3386,7 +3414,7 @@ namespace WorldCreator.Mod
                         if (!_createdMapLayers.Contains(layer.Id)) _eraseMapMode = false;
                         if (_selectedMapLayers.Add(layer.Id)) LoadMapLayerPreview(layer);
                     }
-                    GUILayout.EndHorizontal();
+                    GUILayout.EndVertical();
                 }
                 GUILayout.EndScrollView();
                 if (_project.IsGeographicLayer(layer.Id) && NativeButton("+ Add named region", _buttonStyle!, GUILayout.Height(26)))
@@ -3400,6 +3428,7 @@ namespace WorldCreator.Mod
                     }
                     catch (Exception e) { _status = "Could not add region: " + e.Message; }
                 }
+                GUILayout.EndVertical();
             }
             var pngAssets = GetMapMaskAssets();
             GUILayout.Label("STARTING MASK", _sectionStyle!);
