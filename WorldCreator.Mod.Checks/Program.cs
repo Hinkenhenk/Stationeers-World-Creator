@@ -1,6 +1,15 @@
 using System.Xml.Linq;
 using WorldCreator.Mod;
 
+if (EditorHelp.Pages.Length != EditorHelp.Titles.Length || EditorHelp.GettingStarted.Length < 8 ||
+    EditorHelp.Pages.Any(page => page.Length < 6 || page.Any(section => string.IsNullOrWhiteSpace(section.Title) || string.IsNullOrWhiteSpace(section.Body))))
+    throw new Exception("Every editor page needs complete help and the blank-world guide.");
+if (args.Contains("--help-content"))
+{
+    Console.WriteLine("Help content checks passed: all ten editor pages and eight world-creation steps.");
+    return;
+}
+
 var assets = @"D:\Games\steamapps\common\Stationeers\rocketstation_Data\StreamingAssets";
 var temp = Path.Combine(Directory.GetCurrentDirectory(), ".worldcreator-check-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(temp);

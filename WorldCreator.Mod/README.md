@@ -4,7 +4,7 @@ A prebuilt package is available from [GitHub Releases](https://github.com/Hinken
 
 ## Install the package
 
-Close Stationeers. Extract `WorldCreator-0.2.146.zip` into `Documents\My Games\Stationeers\mods`, replacing the existing WorldCreator DLL and About metadata. Keep one installed copy; store old builds outside the game's mod folders. Enable StationeersWorldCreator in your LaunchPad profile and open World Creator from the main menu.
+Close Stationeers. Extract `WorldCreator-0.2.148.zip` into `Documents\My Games\Stationeers\mods`, replacing the existing WorldCreator DLL and About metadata. Keep one installed copy; store old builds outside the game's mod folders. Enable StationeersWorldCreator in your LaunchPad profile and open World Creator from the main menu.
 
 ## Build from source
 
@@ -28,4 +28,5 @@ The focused snapshot check can be run from the repository root:
 dotnet run --project WorldCreator.Mod.Checks -- --climate-snapshot
 ```
 
-The release build and focused checks pass. The full existing export suite currently encounters a Windows directory-move access error on the development machine. The new Unity graphs have not yet been checked in-game.
+The release build and focused checks pass. The full existing export suite currently encounters a Windows directory-move access error on the development machine. The Unity graphs, editing and tooltips have been checked in-game using the WC profile. Page Help and its foreground input behavior were checked in-game.
+

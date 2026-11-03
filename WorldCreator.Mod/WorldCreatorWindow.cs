@@ -19,7 +19,7 @@ namespace WorldCreator.Mod
         private const float ScrollContentRightPadding = 36f;
         private static readonly string[] Names = { "Blank world (no template)", "Mars", "Moon", "Europa", "Mimas", "Venus", "Vulcan" };
         private static readonly string[] Files = { "", "Mars2/Mars2.xml", "Lunar/Lunar.xml", "Europa/Europa.xml", "Mimas/MimasHerschel.xml", "Venus/Venus.xml", "Vulcan/VulcanV2.xml" };
-        private static readonly string[] Pages = { "Overview", "Environment", "Weather", "Orbit & seasons", "Resources", "Terrain", "Advanced", "Map studio", "Starting conditions", "Asset libraries" };
+        private static readonly string[] Pages = EditorHelp.Titles;
         private static readonly string[] AssetCategories = { "Surface", "Underground", "Atmosphere / Sky", "Map / UI", "Other" };
         private sealed class GasOption
         {
@@ -108,7 +108,6 @@ namespace WorldCreator.Mod
         private bool _pendingClose;
         private bool _discardConfirmed;
         private string? _hoverTooltip;
-        private Vector2 _pointerPosition;
         private string? _temperatureDragPath;
         private float _temperatureDragMin;
         private float _temperatureDragMax;
@@ -211,8 +210,9 @@ namespace WorldCreator.Mod
 
         private void Update()
         {
+            if (_helpOpen && Input.GetKeyDown(KeyCode.Escape)) _pendingHelpClose = true;
             if (_nativePopupOpen != null && Input.GetKeyDown(KeyCode.Escape)) CloseNativePopup();
-            if (!_orbitSimulationPlaying || _screen != 1 || _page != 3 || _project == null) return;
+            if (!_orbitSimulationPlaying || _screen != 3 || _page != 3 || _project == null) return;
             var delta = Time.unscaledDeltaTime;
             if (delta <= 0) return;
             var orbitalPeriod = OrbitPeriodDays();
@@ -290,14 +290,15 @@ namespace WorldCreator.Mod
             EnsureStyles();
             var previousBackground = GUI.backgroundColor;
             GUI.backgroundColor = Color.white;
-            _pointerPosition = Input.mousePosition;
             _hoverTooltip = null;
             if (Event.current.type == EventType.Layout)
             {
                 if (_pendingScreen >= 0) { _screen = _pendingScreen; _pendingScreen = -1; }
                 if (_pendingPage >= 0) { _page = _pendingPage; _pendingPage = -1; }
+                ApplyHelpNavigation();
             }
             GUI.Window(904521, _window, DrawWindow, GUIContent.none, _windowStyle!);
+            if (_helpOpen) DrawHelpOverlay();
             if (_pendingTemplate >= 0 || _pendingLoadPath != null || _pendingClose || _pendingWeatherDeleteId != null)
             {
                 CloseNativePopup();
@@ -307,7 +308,6 @@ namespace WorldCreator.Mod
                 GUI.ModalWindow(904522, new Rect((Screen.width - dialogWidth) / 2f, (Screen.height - dialogHeight) / 2f, dialogWidth, dialogHeight), DrawDiscardDialog, _pendingWeatherDeleteId != null ? "Delete saved weather effect?" : _pendingClose ? "Leave editor?" : "Replace current settings?", _dialogStyle!);
             }
             if (_nativePopupOpen != null) DrawNativePopup(_nativePopupOpen, _nativePopupOptions, _nativePopupCurrentSelected);
-            DrawHoverTooltip(string.IsNullOrWhiteSpace(_hoverTooltip) ? GUI.tooltip : _hoverTooltip);
             GUI.backgroundColor = previousBackground;
             skin.font = previousSkinFont;
             skin.label.font = previousLabelFont;
@@ -335,11 +335,11 @@ namespace WorldCreator.Mod
         }
 
         private bool NativeButton(string label, GUIStyle layoutStyle, params GUILayoutOption[] options) =>
-            GUILayout.Button(new GUIContent(label, GUI.tooltip), layoutStyle, options);
+            GUILayout.Button(new GUIContent(label), layoutStyle, options);
 
         private bool NativeButton(string label, params GUILayoutOption[] options) => NativeButton(label, GUI.skin.button, options);
 
-        private bool NativeButtonAt(Rect guiRect, string label, GUIStyle layoutStyle) => GUI.Button(guiRect, new GUIContent(label, GUI.tooltip), layoutStyle);
+        private bool NativeButtonAt(Rect guiRect, string label, GUIStyle layoutStyle) => GUI.Button(guiRect, new GUIContent(label), layoutStyle);
         private int NativeSelectionGrid(int selected, string[] labels, int columns, GUIStyle style, params GUILayoutOption[] options)
         {
             columns = Mathf.Max(1, columns);
@@ -475,13 +475,18 @@ namespace WorldCreator.Mod
 
         private void DrawWindow(int windowId)
         {
+            var editorWasEnabled = GUI.enabled;
+            GUI.enabled = editorWasEnabled && !_helpOpen;
             if (_screen == 0) DrawHome();
             else if (_screen == 2) DrawLoadPage();
             else DrawEditorPage();
+            GUI.enabled = editorWasEnabled;
 
             // GUI.tooltip is resolved by IMGUI after controls have been drawn.
             // Capture it inside the window callback before its GUI context ends.
             if (!string.IsNullOrWhiteSpace(GUI.tooltip)) _hoverTooltip = GUI.tooltip;
+            if (!_helpOpen && _nativePopupOpen == null && _pendingTemplate < 0 && _pendingLoadPath == null && !_pendingClose && _pendingWeatherDeleteId == null)
+                DrawHoverTooltip(_hoverTooltip ?? "");
         }
 
         private void DrawHome()
@@ -577,7 +582,7 @@ namespace WorldCreator.Mod
         {
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
             var title = field.Label.StartsWith(labelPrefix, StringComparison.Ordinal) ? field.Label.Substring(labelPrefix.Length) : ReadableFieldLabel(field.Label, false);
-            GUILayout.Label(new GUIContent(title + "  ⓘ", field.Tooltip), _mutedStyle!);
+            HelpLabel(new GUIContent(title + "  ⓘ", field.Tooltip), _mutedStyle!);
             var rect = GUILayoutUtility.GetRect(80, 28, GUILayout.ExpandWidth(true), GUILayout.Height(28));
             RegisterHoverTooltip(rect, field.Tooltip);
             if (field.IsBoolean)
@@ -756,7 +761,7 @@ namespace WorldCreator.Mod
             GUILayout.FlexibleSpace();
             GUILayout.Label("WORLD CREATOR", _titleStyle!, GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
-            GUILayout.Space(120f);
+            if (NativeButton("Help", _buttonStyle!, GUILayout.Width(120), GUILayout.Height(34))) _pendingHelpTopic = _page;
             GUILayout.EndHorizontal();
             GUILayout.Space(30f);
             GUILayout.EndHorizontal();
@@ -1004,17 +1009,17 @@ namespace WorldCreator.Mod
             GUILayout.Label("Basic information used by the world menu and generated mod.", _mutedStyle!);
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-            GUILayout.Label(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!);
+            HelpLabel(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!);
             _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
             GUILayout.EndVertical();
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-            GUILayout.Label(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
+            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
             _id = TooltipTextField(_id, "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores.", 0, 30, 48);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
             GUILayout.Space(6);
             var descriptionHelp = "Description shown for this world. It is saved into the generated world.xml.";
-            GUILayout.Label(new GUIContent("Description  ⓘ", descriptionHelp), _mutedStyle!);
+            HelpLabel(new GUIContent("Description  ⓘ", descriptionHelp), _mutedStyle!);
             RegisterHoverTooltip(GUILayoutUtility.GetLastRect(), descriptionHelp);
             _project!.SetWorldDescription(GUILayout.TextArea(_project.WorldDescription, _multilineStyle!, GUILayout.Height(76), GUILayout.ExpandWidth(true)));
             var gravity = _project!.WorldFields.FirstOrDefault(field => field.Label.StartsWith("Gravity", StringComparison.Ordinal));
@@ -1104,11 +1109,11 @@ namespace WorldCreator.Mod
             GUILayout.Label(_projectOrigin, _mutedStyle!);
             GUILayout.EndVertical();
             GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-            GUILayout.Label(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!);
+            HelpLabel(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!);
             _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
             GUILayout.EndVertical();
             GUILayout.BeginVertical(GUILayout.Width(240));
-            GUILayout.Label(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
+            HelpLabel(new GUIContent("World ID  ⓘ", "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores."), _mutedStyle!);
             _id = TooltipTextField(_id, "Unique XML identifier for the world mod. It must start with WC_ and contain only letters, numbers or underscores.", 0, 30, 48);
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
@@ -1211,7 +1216,7 @@ namespace WorldCreator.Mod
 
                 GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(new GUIContent(curveTitle + "  ⓘ", curve.First().Time.Tooltip + " " + curve.First().Value.Tooltip), _sectionStyle!);
+                HelpLabel(new GUIContent(curveTitle + "  ⓘ", curve.First().Time.Tooltip + " " + curve.First().Value.Tooltip), _sectionStyle!);
                 GUILayout.FlexibleSpace();
                 if (NativeButton("+ Add key", _buttonStyle!, GUILayout.Width(105)))
                 {
@@ -1241,7 +1246,7 @@ namespace WorldCreator.Mod
                 {
                     GUILayout.BeginHorizontal(_rowStyle!);
                 var pointLabel = CurvePointLabel(key.Time.Value, timeLabel, isBaseTemperature);
-                    GUILayout.Label(new GUIContent(pointLabel, "This point is set at " + pointLabel + ". The game interpolates between the surrounding points."), _sectionStyle!, GUILayout.Width(160));
+                    HelpLabel(new GUIContent(pointLabel, "This point is set at " + pointLabel + ". The game interpolates between the surrounding points."), _sectionStyle!, GUILayout.Width(160));
                 if (isBaseTemperature) DrawCurveNumber(key.Time, timeLabel, 135, 0, 180);
                 else DrawCurveNumber(key.Time, timeLabel, 135);
                     if (isBaseTemperature) DrawTemperatureValue(key.Value, valueLabel, 135);
@@ -1276,7 +1281,7 @@ namespace WorldCreator.Mod
         private void DrawCurveNumber(WorldCreator.Mod.WorldProject.Field field, string label, float width, double? minimum = null, double? maximum = null)
         {
             GUILayout.BeginVertical(GUILayout.Width(width));
-            GUILayout.Label(new GUIContent(label + "  ⓘ", field.Tooltip), _mutedStyle!);
+            HelpLabel(new GUIContent(label + "  ⓘ", field.Tooltip), _mutedStyle!);
             var rect = GUILayoutUtility.GetRect(0, 28, GUILayout.ExpandWidth(true), GUILayout.Height(28));
             RegisterHoverTooltip(rect, field.Tooltip);
             var value = MaskNumericInput(GUI.TextField(rect, field.Value, _inputStyle!));
@@ -1289,7 +1294,7 @@ namespace WorldCreator.Mod
         private void DrawTemperatureValue(WorldProject.Field field, string label, float width)
         {
             GUILayout.BeginVertical(GUILayout.Width(width));
-            GUILayout.Label(new GUIContent(label + "  ⓘ", field.Tooltip + " Stored in world XML as kelvin."), _mutedStyle!);
+            HelpLabel(new GUIContent(label + "  ⓘ", field.Tooltip + " Stored in world XML as kelvin."), _mutedStyle!);
             var rect = GUILayoutUtility.GetRect(0, 28, GUILayout.ExpandWidth(true), GUILayout.Height(28));
             RegisterHoverTooltip(rect, field.Tooltip + " Stored in world XML as kelvin.");
             var kelvin = double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var stored) ? stored : 273.15;
@@ -1329,6 +1334,13 @@ namespace WorldCreator.Mod
             // IMGUI group's origin, including nested cards and scroll views.
             if (!rect.Contains(Event.current.mousePosition)) return;
             _hoverTooltip = tooltip;
+        }
+
+        private void HelpLabel(GUIContent content, GUIStyle style, params GUILayoutOption[] options)
+        {
+            GUILayout.Label(content, style, options);
+            if (Event.current.type == EventType.Repaint)
+                RegisterHoverTooltip(GUILayoutUtility.GetLastRect(), content.tooltip);
         }
 
         private static string CurveSide(string path)
@@ -1377,13 +1389,15 @@ namespace WorldCreator.Mod
 
         private void DrawHoverTooltip(string tooltip)
         {
-            if (string.IsNullOrWhiteSpace(tooltip) || _tooltipStyle == null) return;
+            if (string.IsNullOrWhiteSpace(tooltip) || _tooltipStyle == null || Event.current.type != EventType.Repaint || GUIUtility.hotControl != 0) return;
             var content = new GUIContent(tooltip);
-            var width = Mathf.Min(340, Screen.width - 24);
-            var height = Mathf.Min(180, _tooltipStyle.CalcHeight(content, width) + 16);
-            var mouse = new Vector2(_pointerPosition.x, Screen.height - _pointerPosition.y);
-            var x = Mathf.Clamp(mouse.x + 18, 8, Screen.width - width - 8);
-            var y = Mathf.Clamp(mouse.y + 20, 8, Screen.height - height - 8);
+            var width = Mathf.Min(420, _window.width - 32);
+            var height = Mathf.Min(_window.height - 32, _tooltipStyle.CalcHeight(content, width) + 8);
+            var mouse = Event.current.mousePosition;
+            var x = Mathf.Clamp(mouse.x + 18, 8, _window.width - width - 8);
+            var y = mouse.y + 22;
+            if (y + height > _window.height - 8) y = mouse.y - height - 12;
+            y = Mathf.Clamp(y, 8, _window.height - height - 8);
             GUI.Box(new Rect(x, y, width, height), content, _tooltipStyle);
         }
 
@@ -1508,7 +1522,7 @@ namespace WorldCreator.Mod
                 try { _project.AddTemperatureCurve(); _status = "Added a temperature curve. Edit its key values below."; }
                 catch (Exception e) { _status = e.Message; }
             }
-            GUILayout.Label(new GUIContent("Add gas  ⓘ", "Add a gas species with a quantity in moles per 8,000-litre atmosphere grid cell. Every species shares the environment temperature; the temperature curve controls the world atmosphere, while this amount changes gas composition."), _mutedStyle!);
+            HelpLabel(new GUIContent("Add gas  ⓘ", "Add a gas species with a quantity in moles per 8,000-litre atmosphere grid cell. Every species shares the environment temperature; the temperature curve controls the world atmosphere, while this amount changes gas composition."), _mutedStyle!);
             var availableGases = Gases.Where(g => !_project.AtmosphereFields.Any(field => field.Label.Contains("[" + g.Id + "]"))).ToArray();
             GUILayout.BeginHorizontal();
             if (availableGases.Length == 0) GUILayout.Label("All listed gases are already added.", _mutedStyle!);
@@ -1532,7 +1546,7 @@ namespace WorldCreator.Mod
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label(new GUIContent("Pressure estimate at temperature (K)  ⓘ", "This reference temperature is used only for the ideal-gas pressure estimate shown here; it does not change the world's temperature curve."), _mutedStyle!);
+            HelpLabel(new GUIContent("Pressure estimate at temperature (K)  ⓘ", "This reference temperature is used only for the ideal-gas pressure estimate shown here; it does not change the world's temperature curve."), _mutedStyle!);
             _referenceTemperature = TooltipTextField(_referenceTemperature, "Reference temperature for the ideal-gas estimate only. This field does not change world settings.", 100, 26, numeric: true);
             var pressureLabel = "- kPa";
             if (double.TryParse(_referenceTemperature, NumberStyles.Float, CultureInfo.InvariantCulture, out var temperature) && temperature > 0 && !double.IsNaN(temperature) && !double.IsInfinity(temperature))
@@ -2370,7 +2384,7 @@ namespace WorldCreator.Mod
             var controlsOnRight = Screen.width >= 1400;
             if (controlsOnRight) GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
-            GUILayout.Label(new GUIContent("BASE TEMPERATURE CURVE  ⓘ", "Absolute atmosphere temperature in kelvin, sampled against Stationeers' solar-angle input from 0° to 180°. Each solar angle has one curve point."), _sectionStyle!);
+            HelpLabel(new GUIContent("BASE TEMPERATURE CURVE  ⓘ", "Absolute atmosphere temperature in kelvin, sampled against Stationeers' solar-angle input from 0° to 180°. Each solar angle has one curve point."), _sectionStyle!);
             GUILayout.Label("Temperature (" + TemperatureUnitName(_temperatureUnit) + ")", _mutedStyle!);
             var chart = GUILayoutUtility.GetRect(100, 520, GUILayout.ExpandWidth(true));
             GUI.Box(chart, "");
@@ -2735,14 +2749,14 @@ namespace WorldCreator.Mod
                 if (_orbitSphereMaterial != null)
                 {
                     if (_orbitSphereMaterial.HasProperty("_Metallic")) _orbitSphereMaterial.SetFloat("_Metallic", 0f);
-                    if (_orbitSphereMaterial.HasProperty("_Glossiness")) _orbitSphereMaterial.SetFloat("_Glossiness", .12f);
+                    if (_orbitSphereMaterial.HasProperty("_Glossiness")) _orbitSphereMaterial.SetFloat("_Glossiness", 0f);
                 }
 
                 var lightObject = new GameObject("World Creator orbit preview light") { hideFlags = HideFlags.HideAndDontSave, layer = 31 };
                 _orbitSphereLight = lightObject.AddComponent<Light>();
                 _orbitSphereLight.type = LightType.Spot;
                 _orbitSphereLight.renderMode = LightRenderMode.ForcePixel;
-                _orbitSphereLight.intensity = 24f;
+                _orbitSphereLight.intensity = 1.2f;
                 _orbitSphereLight.range = 8f;
                 _orbitSphereLight.spotAngle = 55f;
                 _orbitSphereLight.cullingMask = 1 << 31;
@@ -2762,10 +2776,17 @@ namespace WorldCreator.Mod
             _orbitLightDirectionView = lightDirectionView;
             _orbitSphereLight!.transform.position = _orbitLightDirectionView * 3.5f;
             _orbitSphereLight.transform.rotation = Quaternion.LookRotation(-_orbitLightDirectionView);
-            _orbitSphereRenderer.enabled = true;
-            RenderOrbitSphere(_orbitPrimarySurfaceTexture!, _orbitSunRenderTexture!, emissive: _orbitPrimaryIsBlackHole || _orbitPrimaryIsStar);
-            RenderOrbitSphere(_orbitPlanetSurfaceTexture!, _orbitPlanetRenderTexture!, emissive: false);
-            _orbitSphereRenderer.enabled = false;
+            var rendererWasEnabled = _orbitSphereRenderer.enabled;
+            try
+            {
+                _orbitSphereRenderer.enabled = true;
+                RenderOrbitSphere(_orbitPrimarySurfaceTexture!, _orbitSunRenderTexture!, emissive: _orbitPrimaryIsBlackHole || _orbitPrimaryIsStar);
+                RenderOrbitSphere(_orbitPlanetSurfaceTexture!, _orbitPlanetRenderTexture!, emissive: false);
+            }
+            finally
+            {
+                _orbitSphereRenderer.enabled = rendererWasEnabled;
+            }
             _orbitSphereRenderedSpin = spin;
             _orbitSphereRenderedRotation = _orbitGlobeRotation;
             _orbitRenderedLightDirectionView = _orbitLightDirectionView;
@@ -2794,16 +2815,31 @@ namespace WorldCreator.Mod
 
         private void RenderOrbitSphere(Texture2D surface, RenderTexture target, bool emissive)
         {
-            _orbitSphereMaterial!.mainTexture = surface;
-            _orbitSphereMaterial.color = Color.white;
-            if (_orbitSphereMaterial.HasProperty("_EmissionColor"))
+            var material = _orbitSphereMaterial!;
+            var camera = _orbitSphereCamera!;
+            var originalShader = material.shader;
+            var originalTarget = camera.targetTexture;
+            try
             {
-                _orbitSphereMaterial.SetColor("_EmissionColor", emissive ? new Color(.75f, .31f, .04f) : Color.black);
-                if (emissive) _orbitSphereMaterial.EnableKeyword("_EMISSION");
+                if (emissive)
+                {
+                    var unlit = Shader.Find("Unlit/Texture");
+                    if (unlit != null) material.shader = unlit;
+                }
+                material.mainTexture = surface;
+                if (material.HasProperty("_Color")) material.color = Color.white;
+                if (material.HasProperty("_EmissionColor"))
+                    material.SetColor("_EmissionColor", emissive ? new Color(.75f, .31f, .04f) : Color.black);
+                if (emissive) material.EnableKeyword("_EMISSION");
+                else material.DisableKeyword("_EMISSION");
+                camera.targetTexture = target;
+                camera.Render();
             }
-            _orbitSphereCamera!.targetTexture = target;
-            _orbitSphereCamera.Render();
-            _orbitSphereCamera.targetTexture = null;
+            finally
+            {
+                camera.targetTexture = originalTarget;
+                material.shader = originalShader;
+            }
         }
 
         private static RenderTexture CreateOrbitRenderTexture(string name)

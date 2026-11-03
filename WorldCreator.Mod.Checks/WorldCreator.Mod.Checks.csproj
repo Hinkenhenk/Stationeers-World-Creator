@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../WorldCreator.Mod/EditorHelp.cs" Link="EditorHelp.cs" />
     <Compile Include="../WorldCreator.Mod/WorldProject.cs" Link="WorldProject.cs" />
     <Compile Include="../WorldCreator.Mod/BuildInfo.cs" Link="BuildInfo.cs" />
     <Compile Include="../WorldCreator.Mod/WeatherEffectLibrary.cs" Link="WeatherEffectLibrary.cs" />

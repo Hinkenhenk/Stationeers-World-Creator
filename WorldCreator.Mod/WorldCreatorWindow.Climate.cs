@@ -76,7 +76,7 @@ namespace WorldCreator.Mod
                     _climateVisible[layer] = !_climateVisible[layer];
             }
             GUILayout.EndHorizontal();
-            GUILayout.Label(new GUIContent("Relative sunlight level: " + _climateSunlight.ToString("0.#", CultureInfo.InvariantCulture) + " / 100  ⓘ",
+            HelpLabel(new GUIContent("Relative sunlight level: " + _climateSunlight.ToString("0.#", CultureInfo.InvariantCulture) + " / 100  ⓘ",
                 "Position across the orbit's calculated irradiance range: 0 is the lower end and 100 the upper end. This preview input selects where the solar-radiation offset curves are evaluated; it does not edit world settings."), _mutedStyle!);
             _climateSunlight = GUILayout.HorizontalSlider(_climateSunlight, 0, 100);
             GUILayout.Label("Inspect sun angle: " + _climateAngle.ToString("0", CultureInfo.InvariantCulture) + "°", _mutedStyle!);
@@ -156,53 +156,59 @@ namespace WorldCreator.Mod
         private void DrawClimatePlot(float[][] series, Color[] colors, bool[] visible, float xMaximum, string xTitle, string yTitle, float marker)
         {
             GUILayout.Label(yTitle, _mutedStyle!);
-            var chart = GUILayoutUtility.GetRect(100, 350, GUILayout.ExpandWidth(true));
-            GUI.Box(chart, "");
-            var plot = new Rect(chart.x + 72, chart.y + 16, Mathf.Max(1, chart.width - 94), chart.height - 72);
-            var finite = series.Where((_, index) => visible[index]).SelectMany(values => values).Where(value => !float.IsNaN(value) && !float.IsInfinity(value)).ToArray();
-            var min = finite.Length == 0 ? 0 : Mathf.Min(0, finite.Min());
-            var max = finite.Length == 0 ? 1 : Mathf.Max(min + 1, finite.Max());
-            if (float.IsInfinity(max - min))
+            var chartRect = GUILayoutUtility.GetRect(100, 350, GUILayout.ExpandWidth(true));
+            GUI.Box(chartRect, "");
+            GUI.BeginGroup(chartRect);
+            try
             {
-                GUI.Label(chart, "The selected curve range is too large to display.", _mutedStyle!);
-                return;
-            }
-            var step = Math.Pow(10, Math.Floor(Math.Log10((max - min) / 5)));
-            step *= (max - min) / (step * 5) > 5 ? 10 : (max - min) / (step * 5) > 2 ? 5 : 2;
-            min = (float)(Math.Floor(min / step) * step);
-            max = (float)(Math.Ceiling(max / step) * step);
-            if (float.IsInfinity(min) || float.IsInfinity(max)) return;
-            var style = new GUIStyle(_mutedStyle!) { alignment = TextAnchor.MiddleRight };
-            for (var tick = 0; tick <= 5; tick++)
-            {
-                var fraction = tick / 5f;
-                var y = plot.yMax - fraction * plot.height;
-                GUI.Label(new Rect(chart.x + 2, y - 9, 62, 18), Mathf.Lerp(min, max, fraction).ToString("0.##", CultureInfo.InvariantCulture), style);
-                DrawOrbitLine(new Vector2(plot.x, y), new Vector2(plot.xMax, y), new Color(1, 1, 1, .13f), 1);
-            }
-            for (var tick = 0; tick <= 4; tick++)
-            {
-                var x = plot.x + tick / 4f * plot.width;
-                GUI.Label(new Rect(x - 26, plot.yMax + 2, 60, 18), (tick / 4f * xMaximum).ToString("0.#", CultureInfo.InvariantCulture), _mutedStyle!);
-            }
-            GUI.Label(new Rect(plot.x, plot.yMax + 22, plot.width, 24), xTitle, _mutedStyle!);
-            if (Event.current.type != EventType.Repaint) return;
-            DrawOrbitLine(new Vector2(plot.x, plot.y), new Vector2(plot.x, plot.yMax), Muted, 1);
-            DrawOrbitLine(new Vector2(plot.x, plot.yMax), new Vector2(plot.xMax, plot.yMax), Muted, 1);
-            var markerX = plot.x + Mathf.Clamp01(marker / xMaximum) * plot.width;
-            DrawOrbitLine(new Vector2(markerX, plot.y), new Vector2(markerX, plot.yMax), new Color(1, 1, 1, .4f), 1);
-            for (var layer = 0; layer < series.Length; layer++)
-            {
-                if (!visible[layer]) continue;
-                var samples = series[layer];
-                for (var sample = 1; sample < samples.Length; sample++)
+                var chart = new Rect(0, 0, chartRect.width, chartRect.height);
+                var plot = new Rect(chart.x + 72, chart.y + 16, Mathf.Max(1, chart.width - 94), chart.height - 72);
+                var finite = series.Where((_, index) => visible[index]).SelectMany(values => values).Where(value => !float.IsNaN(value) && !float.IsInfinity(value)).ToArray();
+                var min = finite.Length == 0 ? 0 : Mathf.Min(0, finite.Min());
+                var max = finite.Length == 0 ? 1 : Mathf.Max(min + 1, finite.Max());
+                if (float.IsInfinity(max - min))
                 {
-                    if (float.IsNaN(samples[sample - 1]) || float.IsInfinity(samples[sample - 1]) || float.IsNaN(samples[sample]) || float.IsInfinity(samples[sample])) continue;
-                    var from = new Vector2(plot.x + (sample - 1f) / (samples.Length - 1) * plot.width, plot.yMax - (samples[sample - 1] - min) / (max - min) * plot.height);
-                    var to = new Vector2(plot.x + sample / (float)(samples.Length - 1) * plot.width, plot.yMax - (samples[sample] - min) / (max - min) * plot.height);
-                    DrawOrbitLine(from, to, colors[layer], layer == 0 ? 2 : 1);
+                    GUI.Label(chart, "The selected curve range is too large to display.", _mutedStyle!);
+                    return;
+                }
+                var step = Math.Pow(10, Math.Floor(Math.Log10((max - min) / 5)));
+                step *= (max - min) / (step * 5) > 5 ? 10 : (max - min) / (step * 5) > 2 ? 5 : 2;
+                min = (float)(Math.Floor(min / step) * step);
+                max = (float)(Math.Ceiling(max / step) * step);
+                if (float.IsInfinity(min) || float.IsInfinity(max)) return;
+                var style = new GUIStyle(_mutedStyle!) { alignment = TextAnchor.MiddleRight };
+                for (var tick = 0; tick <= 5; tick++)
+                {
+                    var fraction = tick / 5f;
+                    var y = plot.yMax - fraction * plot.height;
+                    GUI.Label(new Rect(chart.x + 2, y - 9, 62, 18), Mathf.Lerp(min, max, fraction).ToString("0.##", CultureInfo.InvariantCulture), style);
+                    DrawOrbitLine(new Vector2(plot.x, y), new Vector2(plot.xMax, y), new Color(1, 1, 1, .13f), 1);
+                }
+                for (var tick = 0; tick <= 4; tick++)
+                {
+                    var x = plot.x + tick / 4f * plot.width;
+                    GUI.Label(new Rect(x - 26, plot.yMax + 2, 60, 18), (tick / 4f * xMaximum).ToString("0.#", CultureInfo.InvariantCulture), _mutedStyle!);
+                }
+                GUI.Label(new Rect(plot.x, plot.yMax + 22, plot.width, 24), xTitle, _mutedStyle!);
+                if (Event.current.type != EventType.Repaint) return;
+                DrawOrbitLine(new Vector2(plot.x, plot.y), new Vector2(plot.x, plot.yMax), Muted, 1);
+                DrawOrbitLine(new Vector2(plot.x, plot.yMax), new Vector2(plot.xMax, plot.yMax), Muted, 1);
+                var markerX = plot.x + Mathf.Clamp01(marker / xMaximum) * plot.width;
+                DrawOrbitLine(new Vector2(markerX, plot.y), new Vector2(markerX, plot.yMax), new Color(1, 1, 1, .4f), 1);
+                for (var layer = 0; layer < series.Length; layer++)
+                {
+                    if (!visible[layer]) continue;
+                    var samples = series[layer];
+                    for (var sample = 1; sample < samples.Length; sample++)
+                    {
+                        if (float.IsNaN(samples[sample - 1]) || float.IsInfinity(samples[sample - 1]) || float.IsNaN(samples[sample]) || float.IsInfinity(samples[sample])) continue;
+                        var from = new Vector2(plot.x + (sample - 1f) / (samples.Length - 1) * plot.width, plot.yMax - (samples[sample - 1] - min) / (max - min) * plot.height);
+                        var to = new Vector2(plot.x + sample / (float)(samples.Length - 1) * plot.width, plot.yMax - (samples[sample] - min) / (max - min) * plot.height);
+                        DrawOrbitLine(from, to, colors[layer], layer == 0 ? 2 : 1);
+                    }
                 }
             }
+            finally { GUI.EndGroup(); }
         }
     }
 }

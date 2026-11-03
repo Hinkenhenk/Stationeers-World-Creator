@@ -2,13 +2,17 @@
 
 An in-game BepInEx mod for creating and editing custom Stationeers worlds.
 
-Current version: **0.2.146**.
+Current version: **0.2.148**.
 
-Download the ready-to-install **WorldCreator-0.2.146.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest). BepInEx 5 and StationeersLaunchPad must already be installed.
+Download the ready-to-install **WorldCreator-0.2.148.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest). BepInEx 5 and StationeersLaunchPad must already be installed.
 
 Extract the ZIP into `Documents\My Games\Stationeers\mods`. The result should be `mods\WorldCreator\About\About.xml` and `mods\WorldCreator\WorldCreator.Mod.dll`. Enable StationeersWorldCreator in LaunchPad, then open World Creator from the main menu.
 
 ## In this update
+
+- Help on every editor page opens page-specific explanations and an eight-step guide to creating a world from scratch.
+- Hover help now appears in front of the editor. Climate plots stay inside their scroll viewport.
+- Orbit simulation advances on the editor page; sphere lighting avoids the previous white overexposure.
 
 - Environment includes a combined temperature preview and baseline, sunlight, greenhouse, and density contributions, using the installed game's curve evaluators.
 - Inspect the temperature breakdown at a selected sun angle and sunlight input. Per-gas greenhouse graphs and a concentration/contribution table explain how the gas mixture affects the result.
@@ -20,3 +24,4 @@ The climate preview works on an isolated copy of the project atmosphere. It excl
 The source and build/install notes are in [WorldCreator.Mod](WorldCreator.Mod/README.md). Verification checks are in [WorldCreator.Mod.Checks](WorldCreator.Mod.Checks/Program.cs).
 
 Game DLLs, textures, decompiled sources, research inventories, and old archives are not included. The release ZIP contains only the mod DLL, metadata, and installation notes.
+

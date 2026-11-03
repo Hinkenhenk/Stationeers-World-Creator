@@ -2,7 +2,7 @@ namespace WorldCreator.Mod
 {
     internal static class BuildInfo
     {
-        internal const string Version = "0.2.146";
+        internal const string Version = "0.2.148";
     }
 }
 
