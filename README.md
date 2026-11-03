@@ -8,8 +8,7 @@ Requires Stationeers, BepInEx 5 and [StationeersLaunchPad](https://stationeersla
 
 1. Download **WorldCreator-0.2.152.zip** from [Releases](https://github.com/Hinkenhenk/Stationeers-World-Creator/releases/latest).
 2. Close Stationeers and extract the `WorldCreator` folder into `Documents\My Games\Stationeers\mods`.
-3. If upgrading from 0.2.150 or earlier, remove `WorldCreator.Mod.dll` from that folder. The mod is now called `WorldCreator.dll`; keep only the new DLL.
-4. Enable **StationeersWorldCreator** in your LaunchPad profile, then open **World Creator** from the game's main menu.
+3. Enable **StationeersWorldCreator** in your LaunchPad profile, then open **World Creator** from the game's main menu.
 
 The installed folder should contain:
 
@@ -39,8 +38,6 @@ A blank project needs compiled terrain before it can be played. The climate prev
 The mod targets Stationeers **0.2.6428.27798**. Game assemblies are read from your installation and are not included here.
 
 ## Known issues
-
 - Re-exporting a loaded custom map can fail because a referenced texture is missing from the output.
-- Recent Map Studio layout changes still need an in-game review.
 
 Report problems in [Issues](https://github.com/Hinkenhenk/Stationeers-World-Creator/issues), with the mod version and the relevant log or screenshot.
