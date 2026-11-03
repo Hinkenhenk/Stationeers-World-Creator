@@ -3,14 +3,14 @@
 Install the .NET SDK and set up Stationeers with BepInEx 5 and StationeersLaunchPad. From the repository root, run:
 
 ```powershell
-dotnet build .\WorldCreator.Mod\WorldCreator.Mod.csproj -c Release -p:GameDir='D:\Games\steamapps\common\Stationeers'
+dotnet build .\WorldCreator\WorldCreator.csproj -c Release -p:GameDir='D:\Games\steamapps\common\Stationeers'
 ```
 
 Change `GameDir` to your Stationeers folder. The project reads the game and Unity assemblies from that installation.
 
-The output is `WorldCreator.Mod\bin\Release\netstandard2.1\WorldCreator.dll`. Copy it into `Documents\My Games\Stationeers\mods\WorldCreator`, with `WorldCreator.Mod\About\About.xml` in the `About` subfolder. Close the game before replacing files. Remove an older `WorldCreator.Mod.dll` so LaunchPad does not find two copies.
+The output is `WorldCreator\bin\Release\netstandard2.1\WorldCreator.dll`. Copy it into `Documents\My Games\Stationeers\mods\WorldCreator`, with `WorldCreator\About\About.xml` in the `About` subfolder. Close the game before replacing files. Remove an older `WorldCreator.Mod.dll` so LaunchPad does not find two copies.
 
-Version numbers are set in `WorldCreator.Mod\BuildInfo.cs` and `WorldCreator.Mod\About\About.xml`. Keep them in sync when preparing a release. A release ZIP contains the `WorldCreator` folder with `WorldCreator.dll`, `About\About.xml` and `README.txt`.
+Version numbers are set in `WorldCreator\BuildInfo.cs` and `WorldCreator\About\About.xml`. Keep them in sync when preparing a release. A release ZIP contains the `WorldCreator` folder with `WorldCreator.dll`, `About\About.xml` and `README.txt`.
 
 ## Source layout
 
