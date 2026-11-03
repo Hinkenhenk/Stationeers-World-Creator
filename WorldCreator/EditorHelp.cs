@@ -1,4 +1,4 @@
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     internal static class EditorHelp
     {

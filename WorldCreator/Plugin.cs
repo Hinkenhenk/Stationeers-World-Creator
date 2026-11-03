@@ -2,7 +2,7 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     public sealed class Plugin : BaseUnityPlugin

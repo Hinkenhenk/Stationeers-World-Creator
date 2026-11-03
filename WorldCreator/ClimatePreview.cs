@@ -10,7 +10,7 @@ using Assets.Scripts.Atmospherics;
 using Assets.Scripts.UI.ImGuiUi;
 using UnityEngine;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     // A creation preview owns its data and curves; it never registers or edits live game settings.
     internal sealed class ClimatePreview

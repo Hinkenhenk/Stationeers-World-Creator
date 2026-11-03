@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     internal sealed class WorldProject
     {

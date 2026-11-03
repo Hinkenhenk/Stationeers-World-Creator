@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using HarmonyLib;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     [HarmonyPatch(typeof(Assets.Scripts.UI.MainMenu), "Start")]
     internal static class MainMenuPatch

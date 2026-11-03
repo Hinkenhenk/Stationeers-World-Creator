@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     public sealed partial class WorldCreatorWindow
     {

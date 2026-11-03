@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     internal static class EditorWindow
     {

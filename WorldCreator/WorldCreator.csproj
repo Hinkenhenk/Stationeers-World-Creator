@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>WorldCreator</AssemblyName>
-    <RootNamespace>WorldCreator.Mod</RootNamespace>
+    <RootNamespace>WorldCreator</RootNamespace>
     <GameDir Condition="'$(GameDir)' == ''">D:\Games\steamapps\common\Stationeers</GameDir>
     <GameManagedDir>$(GameDir)\rocketstation_Data\Managed</GameManagedDir>
     <BepInExCoreDir>$(GameDir)\BepInEx\core</BepInExCoreDir>

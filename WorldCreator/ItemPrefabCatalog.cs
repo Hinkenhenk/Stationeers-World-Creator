@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     internal static class ItemPrefabCatalog
     {
@@ -21,7 +21,7 @@ namespace WorldCreator.Mod
             get
             {
                 if (_entries != null) return _entries;
-                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("WorldCreator.Mod.ItemCatalog.xml"))
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("WorldCreator.ItemCatalog.xml"))
                 {
                     if (stream == null) return _entries = new Entry[0];
                     _entries = XDocument.Load(stream).Root?.Elements("Item")

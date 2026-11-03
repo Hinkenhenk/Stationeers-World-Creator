@@ -11,7 +11,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     public sealed partial class WorldCreatorWindow : MonoBehaviour
     {
@@ -1201,7 +1201,7 @@ namespace WorldCreator.Mod
             return result;
         }
 
-        private static List<string> GetCurveKeyParents(IEnumerable<WorldCreator.Mod.WorldProject.Field> fields) =>
+        private static List<string> GetCurveKeyParents(IEnumerable<WorldCreator.WorldProject.Field> fields) =>
             CurveKeys(fields).Select(key => key.Path).ToList();
 
         private void DrawCurveKeyEditor(List<WorldProject.Field> fields, string section)
@@ -1286,7 +1286,7 @@ namespace WorldCreator.Mod
             return isBaseTemperature ? value + "°" : inputLabel + " " + value;
         }
 
-        private void DrawCurveNumber(WorldCreator.Mod.WorldProject.Field field, string label, float width, double? minimum = null, double? maximum = null)
+        private void DrawCurveNumber(WorldCreator.WorldProject.Field field, string label, float width, double? minimum = null, double? maximum = null)
         {
             GUILayout.BeginVertical(GUILayout.Width(width));
             HelpLabel(new GUIContent(label + "  ⓘ", field.Tooltip), _mutedStyle!);

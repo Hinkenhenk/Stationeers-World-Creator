@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace WorldCreator.Mod
+namespace WorldCreator
 {
     public sealed partial class WorldCreatorWindow
     {
