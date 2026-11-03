@@ -5,6 +5,8 @@
 
 # Decompiled game source and local research/build state
 /research/decompiled/
+/research/
+/TOOL-PLAN.md
 /backups/
 /.dotnet_cli_home/
 /.dotnet-home/
