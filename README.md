@@ -36,9 +36,7 @@ Each page has a **Help** button. When finished, choose **Create world mod**. Res
 
 A blank project needs compiled terrain before it can be played. The climate preview shows the initial world conditions; active weather, phase changes and player heat can change the result in game.
 
-## Development
-
-See [building from source](docs/development.md). The mod targets Stationeers **0.2.6428.27798**. Game assemblies are read from your installation and are not included here.
+The mod targets Stationeers **0.2.6428.27798**. Game assemblies are read from your installation and are not included here.
 
 ## Known issues
 
