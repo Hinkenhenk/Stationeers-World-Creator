@@ -654,11 +654,11 @@ namespace WorldCreator
         private void ScanWorlds()
         {
             _loadChoices.Clear();
-            var mods = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Stationeers", "mods");
-            AddWorldChoices(mods, false);
-            var gameData = new DirectoryInfo(Application.dataPath);
-            var steamApps = gameData.Parent?.Parent?.Parent;
-            if (steamApps != null) AddWorldChoices(Path.Combine(steamApps.FullName, "workshop", "content", "544550"), true);
+            var installed = (WorkshopMenu.ModsConfig?.Mods.AsEnumerable() ?? Enumerable.Empty<ModData>())
+                .Where(mod => !(mod is CoreModData))
+                .Select(mod => (Path: (string)mod.DirectoryPath, Workshop: mod is WorkshopModData));
+            foreach (var root in ModSearchPaths.Discover(Application.dataPath, Assets.Scripts.Serialization.Settings.CurrentData?.SavePath, installed))
+                AddWorldChoices(root.Path, root.Workshop);
             _loadChoices.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
             _loadSelection = 0;
         }
@@ -679,7 +679,7 @@ namespace WorldCreator
                     var aboutName = ReadModName(modRoot);
                     foreach (var path in Directory.GetFiles(gameData, "*.xml", SearchOption.AllDirectories))
                     {
-                        if (!seen.Add(path)) continue;
+                        if (!seen.Add(path) || _loadChoices.Any(choice => string.Equals(choice.Path, path, StringComparison.OrdinalIgnoreCase))) continue;
                         try
                         {
                             var document = XDocument.Load(path);
@@ -3900,7 +3900,7 @@ namespace WorldCreator
         {
             try
             {
-                var mods = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Stationeers", "mods");
+                var mods = ModSearchPaths.LocalMods(Assets.Scripts.Serialization.Settings.CurrentData?.SavePath);
                 foreach (var layerId in _editedMapLayers)
                     _project!.SetMapLayerTexture(layerId, _mapLayerPreviews[layerId].EncodeToPNG());
                 _status = "Created " + _project!.Export(mods, _id, _name) + ". Enable the mod and restart the game.";
