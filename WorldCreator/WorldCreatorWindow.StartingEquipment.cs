@@ -19,7 +19,6 @@ public sealed partial class WorldCreatorWindow
     private string _equipmentQuantity = "1";
     private int _equipmentSearchSlot = -1;
     private bool _equipmentLanderPicker;
-    private bool _showEquipmentTree;
     /// <summary>Applies tree changes before GUILayout builds its next control hierarchy.</summary>
     private void ApplyEquipmentChange()
     {
@@ -38,19 +37,41 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Shows loaded equipment and controls tied to each individual occurrence.</summary>
+    /// <summary>Places the equipment editor beside a permanently visible overview, stacking only on narrow screens.</summary>
     private void DrawStartingEquipment(string conditionId)
     {
         GUILayout.BeginVertical(_rowStyle!);
         GUILayout.Label("STARTING EQUIPMENT", _sectionStyle!);
         var editable = _project!.CanEditEquipment(conditionId);
+        var available = PageContentWidth - _cardStyle!.padding.horizontal - _rowStyle!.padding.horizontal;
+        var sideBySide = available >= 1400f;
+        var editorWidth = sideBySide ? Mathf.Max(900f, (available - CardSpacing) * 0.55f) : available;
+        if (sideBySide)
+            GUILayout.BeginHorizontal();
+        GUILayout.BeginVertical(GUILayout.Width(editorWidth));
+        DrawEquipmentEditor(conditionId, editable);
+        GUILayout.EndVertical();
+        GUILayout.Space(CardSpacing);
+        GUILayout.BeginVertical(_rowStyle!, GUILayout.Width(sideBySide ? available - editorWidth - CardSpacing : available));
+        GUILayout.Label("EQUIPMENT OVERVIEW", _sectionStyle!);
+        GUILayout.Label("All landers, containers and player kits. Contents opens that container in the equipment editor.", _mutedStyle!);
+        DrawEquipmentTree(conditionId, editable);
+        GUILayout.EndVertical();
+        if (sideBySide)
+            GUILayout.EndHorizontal();
+        GUILayout.EndVertical();
+    }
+
+    /// <summary>Edits the selected container's slots or offers a private copy of installed equipment.</summary>
+    private void DrawEquipmentEditor(string conditionId, bool editable)
+    {
         if (!editable)
         {
             GUILayout.Label("Edit a private copy of the loaded lander, crates and player kits. The installed world stays unchanged.", _mutedStyle!);
             if (NativeButton("Edit this equipment", _buttonStyle!, GUILayout.Height(30)))
                 _pendingEquipmentChange = () =>
                 {
-                    _equipmentProfile = _project.EditStartingEquipment(conditionId);
+                    _equipmentProfile = _project!.EditStartingEquipment(conditionId);
                     _equipmentContainer = null;
                     _status = "Equipment copied into this world. Select a container, then choose an empty slot to add supplies.";
                 };
@@ -65,28 +86,23 @@ public sealed partial class WorldCreatorWindow
             };
         if (editable && !_equipmentLanderPicker)
             DrawEquipmentContainers(conditionId);
-        var showTree = GUILayout.Toggle(_showEquipmentTree, editable ? "Show full equipment hierarchy" : "Show loaded equipment", _buttonStyle!, GUILayout.Height(30));
-        if (showTree != _showEquipmentTree)
-            _pendingEquipmentChange = () => _showEquipmentTree = showTree;
-        if (_showEquipmentTree)
-            DrawEquipmentTree(conditionId, editable);
         if (_equipmentProfile == conditionId && editable && _equipmentLanderPicker)
             DrawEquipmentLanderPicker(conditionId);
-        GUILayout.EndVertical();
     }
 
     /// <summary>Keeps every spawn and loose item accessible, including objects without native slots.</summary>
     private void DrawEquipmentTree(string conditionId, bool editable)
     {
         _equipmentScrolls.TryGetValue(conditionId, out var scroll);
-        _equipmentScrolls[conditionId] = GUILayout.BeginScrollView(scroll, GUILayout.Height(280));
+        _equipmentScrolls[conditionId] = GUILayout.BeginScrollView(scroll, false, true, GUIStyle.none, GUI.skin.verticalScrollbar,
+            GUILayout.Height(Mathf.Clamp(_window.height - 420f, 360f, 680f)));
         if (!editable)
         {
             foreach (var line in _project!.GetStartingEquipment(conditionId))
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(Mathf.Min(line.Depth, 10) * 12f);
-                GUILayout.Label(line.Text, _mutedStyle!, GUILayout.ExpandWidth(true));
+                GUILayout.Label(line.Text, _mutedStyle!, GUILayout.MinWidth(0), GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
             }
         }
@@ -95,7 +111,7 @@ public sealed partial class WorldCreatorWindow
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(Mathf.Min(row.Depth, 8) * 12f);
-                GUILayout.Label((row.Depth == 0 ? row.Event + " · " : "") + row.Label, _mutedStyle!, GUILayout.ExpandWidth(true));
+                GUILayout.Label((row.Depth == 0 ? row.Event + " · " : "") + row.Label, _mutedStyle!, GUILayout.MinWidth(0), GUILayout.ExpandWidth(true));
                 if (EquipmentParent(row.Element, row.Event)?.Slots?.Count > 0 && NativeButton("Contents", _buttonStyle!, GUILayout.Width(95)))
                     _pendingEquipmentChange = () => SelectEquipmentContainer(conditionId, row.Element);
                 if (NativeButton("Remove", _buttonStyle!, GUILayout.Width(85)))

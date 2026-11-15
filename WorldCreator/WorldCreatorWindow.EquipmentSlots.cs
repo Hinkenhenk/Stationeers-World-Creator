@@ -21,7 +21,7 @@ public sealed partial class WorldCreatorWindow
             .Where(row => EquipmentParent(row.Element, row.Event)?.Slots?.Count > 0).ToArray();
         if (containers.Length == 0)
         {
-            GUILayout.Label("No containers yet. Add a supply crate or lander below, or inspect the full hierarchy.", _mutedStyle!);
+            GUILayout.Label("No containers yet. Add a supply crate or lander, or inspect the equipment overview.", _mutedStyle!);
             return;
         }
         var index = Array.FindIndex(containers, row => row.Element == _equipmentContainer && _equipmentProfile == conditionId);
@@ -46,7 +46,7 @@ public sealed partial class WorldCreatorWindow
         }
         catch (Exception error)
         {
-            GUILayout.Label(error.Message + " Use the full hierarchy to inspect or remove unsupported contents.", _mutedStyle!);
+            GUILayout.Label(error.Message + " Use the equipment overview to inspect or remove unsupported contents.", _mutedStyle!);
             return;
         }
         GUILayout.Label(assignments.Count + " occupied / " + parent.Slots.Count + " slots · " + parent.DisplayName, _mutedStyle!);
