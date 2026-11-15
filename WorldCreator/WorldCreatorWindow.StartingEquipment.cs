@@ -37,18 +37,17 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Places the equipment editor beside a permanently visible overview, stacking only on narrow screens.</summary>
+    /// <summary>Draws Starting Equipment and Equipment Overview as separate sibling cards.</summary>
     private void DrawStartingEquipment(string conditionId)
     {
-        GUILayout.BeginVertical(_rowStyle!);
-        GUILayout.Label("STARTING EQUIPMENT", _sectionStyle!);
         var editable = _project!.CanEditEquipment(conditionId);
-        var available = PageContentWidth - _cardStyle!.padding.horizontal - _rowStyle!.padding.horizontal;
+        var available = PageContentWidth - _cardStyle!.padding.horizontal;
         var sideBySide = available >= 1400f;
         var editorWidth = sideBySide ? Mathf.Max(900f, (available - CardSpacing) * 0.55f) : available;
         if (sideBySide)
             GUILayout.BeginHorizontal();
-        GUILayout.BeginVertical(GUILayout.Width(editorWidth));
+        GUILayout.BeginVertical(_rowStyle!, GUILayout.Width(editorWidth));
+        GUILayout.Label("STARTING EQUIPMENT", _sectionStyle!);
         DrawEquipmentEditor(conditionId, editable);
         GUILayout.EndVertical();
         GUILayout.Space(CardSpacing);
@@ -59,7 +58,6 @@ public sealed partial class WorldCreatorWindow
         GUILayout.EndVertical();
         if (sideBySide)
             GUILayout.EndHorizontal();
-        GUILayout.EndVertical();
     }
 
     /// <summary>Edits the selected container's slots or offers a private copy of installed equipment.</summary>
