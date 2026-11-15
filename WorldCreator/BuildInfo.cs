@@ -1,13 +1,6 @@
-namespace WorldCreator
+namespace WorldCreator;
+
+internal static class BuildInfo
 {
-    internal static class BuildInfo
-    {
-        internal const string Version = "0.2.155";
-    }
+    internal const string Version = "0.2.171";
 }
-
-
-
-
-
-
