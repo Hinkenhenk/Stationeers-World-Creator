@@ -45,8 +45,6 @@ Paint region masks with a brush or one pixel at a time. Use the mouse wheel over
 
 Playable boundaries can be polygons, squares or circles. Move the area, resize it, or add polygon corners, then choose **Apply playable area**. Region names, descriptions and RGB colours are edited in the palette; the editor keeps the XML references connected for you.
 
-[Playable polygon](screenshots/titan-playable-polygon.png) · [Map tools](screenshots/titan-map-tools.png) · [Region palette](screenshots/titan-region-palette.png) · [Point-of-interest editor](screenshots/titan-poi-editor.png)
-
 ## Code layout
 
 The editor and world data are split by feature. To change a page, start with its `WorldCreatorWindow.<feature>.cs` file. The matching `WorldProject.<feature>.cs` file handles its XML and validation.
