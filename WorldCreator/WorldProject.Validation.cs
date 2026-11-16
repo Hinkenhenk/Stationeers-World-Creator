@@ -72,6 +72,7 @@ internal sealed partial class WorldProject
         }
 
         ValidateStartConditionExport(folder, world);
+        ValidateMapTextExport(folder);
         var geographic = world.Element("GeographicRegionData");
         if (_mapRegionNames.Count > 0)
         {
@@ -171,7 +172,7 @@ internal sealed partial class WorldProject
             foreach (var item in dynamicThing.Elements("Item"))
             {
                 var itemId = (string? )item.Attribute("Id");
-                var quantity = (string? )item.Element("Quantity")?.Attribute("Value");
+                var quantity = item.Element("Quantity") is XElement quantityElement ? (string?)quantityElement.Attribute("Value") : "1";
                 if (string.IsNullOrWhiteSpace(itemId) || !int.TryParse(quantity, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count < 1)
                     throw new InvalidDataException("A custom supply crate contains an item without a valid prefab Id and positive integer quantity: " + id);
             }

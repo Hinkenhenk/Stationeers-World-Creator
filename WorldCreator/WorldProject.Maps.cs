@@ -12,10 +12,16 @@ internal sealed partial class WorldProject
     {
         if (!MapLayers.Any(layer => layer.Id == layerId))
             throw new InvalidOperationException("Unknown map layer: " + layerId);
-        if (png == null || png.Length < 8 || png[0] != 137 || png[1] != 80 || png[2] != 78 || png[3] != 71 || png[4] != 13 || png[5] != 10 || png[6] != 26 || png[7] != 10)
-            throw new InvalidOperationException("Map layer image must be a PNG.");
+        ValidateMapPng(png);
         _mapLayerTextures[layerId] = (byte[])png.Clone();
         _structureChanged = true;
+    }
+
+    /// <summary>Rejects missing or incorrectly typed mask data before modifying the draft.</summary>
+    private static void ValidateMapPng(byte[] png)
+    {
+        if (png == null || png.Length < 8 || png[0] != 137 || png[1] != 80 || png[2] != 78 || png[3] != 71 || png[4] != 13 || png[5] != 10 || png[6] != 26 || png[7] != 10)
+            throw new InvalidOperationException("Map layer image must be a PNG.");
     }
 
     /// <summary>Discards an edited map-mask image so export reuses the source texture.</summary>
@@ -121,15 +127,20 @@ internal sealed partial class WorldProject
     }
 
     /// <summary>Returns the edited region name or its XML identifier when no custom name exists.</summary>
-    internal string GetMapRegionName(MapLayer.Region region) => region.NameKey != null && _mapRegionNames.TryGetValue(region.NameKey, out var name) ? name : region.Id;
+    internal string GetMapRegionName(MapLayer.Region region)
+    {
+        var poi = PointsOfInterest.FirstOrDefault(item => item.RegionId == region.Id);
+        if (poi != null) return GetPoiText(poi, "Name");
+        return region.NameKey != null && TryGetMapText(region.NameKey, out var name) ? name : region.Id;
+    }
     /// <summary>Updates the exported localization text for a named map region.</summary>
     internal void SetMapRegionName(MapLayer.Region region, string name)
     {
-        if (region.NameKey == null || !_mapRegionNames.ContainsKey(region.NameKey))
-            return;
-        if (_mapRegionNames[region.NameKey] == name)
-            return;
-        _mapRegionNames[region.NameKey] = name;
+        var poi = PointsOfInterest.FirstOrDefault(item => item.RegionId == region.Id);
+        if (poi != null) { SetPoiText(poi, "Name", name); return; }
+        if (region.NameKey == null || GetMapRegionName(region) == name) return;
+        if (_mapRegionNames.ContainsKey(region.NameKey)) _mapRegionNames[region.NameKey] = name;
+        else _mapTextEdits[region.NameKey] = name;
         _structureChanged = true;
     }
 
@@ -138,8 +149,7 @@ internal sealed partial class WorldProject
     /// <summary>Builds map-layer and point-of-interest views from the loaded world's terrain XML.</summary>
     private void InitializeMapSettings()
     {
-        AddAllFields(AdvancedFields, _world, "World");
-        MapFields.AddRange(AdvancedFields.Where(f => f.Label.IndexOf("/RegionSet", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PointOfInterest", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PlayableArea", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/GeographicRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinablesRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/Minables/", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinables/", StringComparison.Ordinal) >= 0));
+        RefreshMapFields();
         var terrain = _world.Element("TerrainSettings");
         if (terrain == null)
             return;
@@ -184,5 +194,19 @@ internal sealed partial class WorldProject
         TerrainSummary.Add("Mini-map: " + ((string? )terrain.Element("MiniMap")?.Attribute("Path") ?? "(not set)"));
         TerrainSummary.Add("Lava surface map: " + ((string? )terrain.Element("Lava")?.Element("HeightTexture")?.Attribute("Path") ?? "(not set)"));
         TerrainSummary.Add("Crust and crack maps are compiled into terrain using Terrain Tools.");
+    }
+
+    /// <summary>Rebuilds XML controls after replacing boundary rules while retaining unrelated pending edits.</summary>
+    private void RefreshMapFields()
+    {
+        var pending = AdvancedFields.Where(field => !field.Label.Contains("/PlayableArea"))
+            .ToDictionary(field => field.Label, field => field.Value, StringComparer.Ordinal);
+        AdvancedFields.Clear();
+        MapFields.Clear();
+        AddAllFields(AdvancedFields, _world, "World");
+        foreach (var field in AdvancedFields)
+            if (pending.TryGetValue(field.Label, out var value) || pending.TryGetValue(field.Label.Replace("/RegionSet #1/", "/RegionSet/"), out value))
+                field.Value = value;
+        MapFields.AddRange(AdvancedFields.Where(f => f.Label.IndexOf("/RegionSet", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PointOfInterest", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PlayableArea", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/GeographicRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinablesRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/Minables/", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinables/", StringComparison.Ordinal) >= 0));
     }
 }

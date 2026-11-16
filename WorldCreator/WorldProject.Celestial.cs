@@ -11,6 +11,12 @@ internal sealed partial class WorldProject
     /// <summary>Resolves source-world asset paths against the source mod and installed game folders.</summary>
     private string? ResolveImportedAsset(string? path)
     {
+        if (path != null)
+        {
+            path = path.Replace('\\', '/');
+            if (path.StartsWith("/", StringComparison.Ordinal) && !path.StartsWith("//", StringComparison.Ordinal))
+                path = path.Substring(1);
+        }
         if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path) || string.IsNullOrEmpty(_sourceAssetRoot))
             return path;
         var fullPath = Path.Combine(_sourceAssetRoot, path.Replace('/', Path.DirectorySeparatorChar));

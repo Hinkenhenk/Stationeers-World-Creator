@@ -21,12 +21,14 @@ internal sealed partial class WorldProject
         ApplyDraftFields();
         var worldOutput = CreateExportWorld(id, displayName);
         var changedMapLayers = PrepareEditedMapLayers(worldOutput, id);
+        PreparePlayableAreaIdentifiers(worldOutput, id);
         var changedWeather = _hasImportedWeatherDefinitions || WeatherFields.Any(f => f.Value != f.Original) || _weather.Any(w => _userWeatherIds.Contains((string? )w.Event.Attribute("Id") ?? string.Empty));
         var weatherCopies = PrepareWeatherCopies(worldOutput, id, changedWeather, out var weatherNames);
         var changedOrbit = _orbitBody != null && (_hasImportedOrbitBody || OrbitFields.Any(f => f.Value != f.Original));
         RewriteExportOrbitReferences(worldOutput, id, changedOrbit);
         var data = CreateExportData(worldOutput, id, changedWeather, changedOrbit, weatherCopies);
         RepairMissingTemplateAssetPaths(worldOutput, id);
+        var importedAssets = PrepareImportedAssetPaths(data, id);
         var temporary = Path.Combine(modsDirectory, ".WorldCreator_" + Guid.NewGuid().ToString("N"));
         try
         {
@@ -35,7 +37,7 @@ internal sealed partial class WorldProject
             new XDocument(data).Save(Path.Combine(temporary, "GameData", "world.xml"));
             WriteExportLanguage(temporary, weatherNames);
             WriteStartingEquipment(temporary);
-            CopyImportedAssets(worldOutput, temporary);
+            CopyImportedAssets(importedAssets, temporary);
             WriteEditedMapLayers(temporary, changedMapLayers);
             WriteProjectAssets(temporary, id);
             WriteCompiledTerrain(temporary, id);
@@ -92,6 +94,7 @@ internal sealed partial class WorldProject
             var regionSet = worldOutput.Descendants("RegionSet").FirstOrDefault(e => (string? )e.Attribute("Id") == layer.Id);
             var texture = regionSet?.Element("Texture") ?? throw new InvalidOperationException("Map layer has no Texture element: " + layer.Id);
             texture.SetAttributeValue("Path", relativePath);
+            texture.SetAttributeValue("Format", "RGB24");
             changedMapLayers.Add((layer.Id, relativePath, textureBytes));
         }
 
@@ -196,7 +199,9 @@ internal sealed partial class WorldProject
             return records;
         })
             .SelectMany(records => records)).Concat(_spawnNames.Select(pair => new XElement("Record", new XElement("Key", pair.Key + "Name"), new XElement("Value", pair.Value)))).Concat(_mapRegionNames.Select(pair => new XElement("Record", new XElement("Key", pair.Key), new XElement("Value", pair.Value))))
-            .ToList();
+            .Concat(_sourceMapText.Where(pair => _world.Elements("RegionSet").Concat(_world.Elements("PointOfInterest")).SelectMany(element => element.Descendants()).Any(element => (string?)element.Attribute("Key") == pair.Key)).Select(pair => new XElement("Record", new XElement("Key", pair.Key), new XElement("Value", pair.Value))))
+            .Concat(_mapTextEdits.Select(pair => new XElement("Record", new XElement("Key", pair.Key), new XElement("Value", pair.Value))))
+            .GroupBy(record => (string?)record.Element("Key"), StringComparer.Ordinal).Select(group => group.Last()).ToList();
         if (languageRecords.Count > 0)
         {
             var language = new XElement(
@@ -293,31 +298,6 @@ internal sealed partial class WorldProject
             }
 
             File.WriteAllLines(Path.Combine(sourceDirectory, "README.txt"), manifest);
-        }
-    }
-
-    /// <summary>Copies referenced source-mod assets into the package without overwriting files already written there.</summary>
-    private void CopyImportedAssets(XElement world, string temporary)
-    {
-        if (string.IsNullOrEmpty(_sourceAssetRoot))
-            return;
-        foreach (var path in world.DescendantsAndSelf().Attributes("Path").Select(a => a.Value.Replace('\\', '/')).Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            if (!path.StartsWith("Worlds/", StringComparison.OrdinalIgnoreCase))
-                continue;
-            var source = ResolveImportedAsset(path)!;
-            var destination = Path.Combine(temporary, "GameData", path.Replace('/', Path.DirectorySeparatorChar));
-            if (Directory.Exists(source))
-            {
-                CopyImportedDirectory(source, destination);
-                continue;
-            }
-
-            if (!File.Exists(source))
-                continue;
-            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            if (!File.Exists(destination))
-                File.Copy(source, destination);
         }
     }
 

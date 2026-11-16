@@ -13,10 +13,10 @@ public sealed partial class WorldCreatorWindow
 
     /// <summary>Stacks cards independently in bounded columns so short cards do not wait for neighboring tall cards.</summary>
     private bool DrawCardColumns<T>(IReadOnlyList<T> cards, Func<T, bool> draw, float inset = 0,
-        float minimumWidth = 440, float maximumWidth = 720)
+        float minimumWidth = 440, float maximumWidth = 720, int maximumColumns = 3)
     {
         var available = Mathf.Max(1f, PageContentWidth - inset);
-        var columns = Mathf.Clamp(Mathf.FloorToInt((available + CardSpacing) / (minimumWidth + CardSpacing)), 1, 3);
+        var columns = Mathf.Clamp(Mathf.FloorToInt((available + CardSpacing) / (minimumWidth + CardSpacing)), 1, maximumColumns);
         var width = Mathf.Min(Mathf.Max(minimumWidth, maximumWidth), (available - CardSpacing * (columns - 1)) / columns);
         GUILayout.BeginHorizontal();
         for (var column = 0; column < columns && column < cards.Count; column++)

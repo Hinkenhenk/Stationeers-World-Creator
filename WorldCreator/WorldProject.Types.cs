@@ -29,9 +29,9 @@ internal sealed partial class WorldProject
         internal sealed class Region
         {
             internal readonly string Id;
-            internal readonly int R;
-            internal readonly int G;
-            internal readonly int B;
+            internal int R;
+            internal int G;
+            internal int B;
             internal readonly string? NameKey;
             /// <summary>Stores the identifier, mask color and optional localization key for one map region.</summary>
             internal Region(string id, int r, int g, int b, string? nameKey = null)

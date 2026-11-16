@@ -17,9 +17,7 @@ public sealed partial class WorldCreatorWindow
     private bool _paintMode;
     private bool _eraseMapMode;
     private float _brushRadius = 7f;
-    private byte[]? _mapUndoPng;
-    private string? _mapUndoLayerId;
-    private bool _mapUndoLayerHadEdits;
+    private readonly MapMaskHistory _mapUndo = new MapMaskHistory();
     /// <summary>Loads a region mask and caches its image and pixels for drawing and painting.</summary>
     private void LoadMapLayerPreview(WorldProject.MapLayer layer)
     {
@@ -39,6 +37,7 @@ public sealed partial class WorldCreatorWindow
             }
 
             texture.name = "World Creator layer " + layer.Id;
+            texture.filterMode = FilterMode.Point;
             _mapLayerPreviews.Add(layer.Id, texture);
             _mapSourcePng[layer.Id] = imageBytes;
             _mapLayerPixels[layer.Id] = texture.GetPixels32();
@@ -92,7 +91,14 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Handles pointer input inside the map preview and starts or finishes a paint stroke.</summary>
     private void DrawMapPaint(Rect mapRect)
     {
-        if (!_paintMode || _paintLayerId == null || (_paintRegionId == null && !_eraseMapMode))
+        var input = Event.current;
+        if (input.type == EventType.KeyDown && input.control && !input.shift && input.keyCode == KeyCode.Z && GUIUtility.keyboardControl == 0 && _mapUndo.Count > 0)
+        {
+            UndoMapStroke();
+            input.Use();
+        }
+        if (HandleMapPipette(mapRect)) return;
+        if (!_paintMode || _editPlayableArea || _paintLayerId == null || _project!.IsPlayableAreaLayer(_paintLayerId) || (_paintRegionId == null && !_eraseMapMode))
             return;
         var layer = _project!.MapLayers.FirstOrDefault(item => item.Id == _paintLayerId);
         var region = layer == null ? null : _eraseMapMode && _createdMapLayers.Contains(layer.Id) ? layer.Regions.FirstOrDefault() : layer.Regions.FirstOrDefault(item => item.Id == _paintRegionId);
@@ -100,22 +106,27 @@ public sealed partial class WorldCreatorWindow
             return;
         var controlId = GUIUtility.GetControlID(FocusType.Passive);
         var current = Event.current;
-        if (current.type == EventType.MouseDown && current.button == 0 && mapRect.Contains(current.mousePosition))
+        if (current.type == EventType.MouseDown && current.button == 0 && _mapInputViewport.Contains(current.mousePosition) && mapRect.Contains(current.mousePosition))
         {
             CaptureMapUndo(layer.Id);
+            GUIUtility.keyboardControl = 0;
+            _lastPaintedMapPixel = null;
             GUIUtility.hotControl = controlId;
             PaintMapAt(layer, region, mapRect, current.mousePosition);
             current.Use();
         }
         else if (current.type == EventType.MouseDrag && GUIUtility.hotControl == controlId)
         {
-            if (mapRect.Contains(current.mousePosition))
+            if (_mapInputViewport.Contains(current.mousePosition) && mapRect.Contains(current.mousePosition))
                 PaintMapAt(layer, region, mapRect, current.mousePosition);
+            else
+                _lastPaintedMapPixel = null;
             current.Use();
         }
         else if (current.type == EventType.MouseUp && GUIUtility.hotControl == controlId)
         {
             GUIUtility.hotControl = 0;
+            _lastPaintedMapPixel = null;
             CachePoiPositions(layer, _mapLayerPreviews[layer.Id]);
             current.Use();
         }
@@ -124,12 +135,17 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Paints the selected region color inside the brush while retaining undo information.</summary>
     private void PaintMapAt(WorldProject.MapLayer layer, WorldProject.MapLayer.Region region, Rect mapRect, Vector2 mouse)
     {
+        if (_pixelMapBrush)
+        {
+            PaintMapPixelLine(layer, region, mapRect, mouse);
+            return;
+        }
         if (!_mapLayerPreviews.TryGetValue(layer.Id, out var texture) || !_mapLayerPixels.TryGetValue(layer.Id, out var pixels))
             return;
         var centerX = Mathf.Clamp(Mathf.RoundToInt((mouse.x - mapRect.x) / mapRect.width * (texture.width - 1)), 0, texture.width - 1);
         var centerY = Mathf.Clamp(Mathf.RoundToInt((1f - (mouse.y - mapRect.y) / mapRect.height) * (texture.height - 1)), 0, texture.height - 1);
-        var radiusX = Mathf.Max(1, Mathf.RoundToInt(_brushRadius * texture.width / mapRect.width));
-        var radiusY = Mathf.Max(1, Mathf.RoundToInt(_brushRadius * texture.height / mapRect.height));
+        var radiusX = Mathf.Max(1, Mathf.RoundToInt(_brushRadius));
+        var radiusY = radiusX;
         var minX = Mathf.Max(0, centerX - radiusX);
         var maxX = Mathf.Min(texture.width - 1, centerX + radiusX);
         var minY = Mathf.Max(0, centerY - radiusY);
@@ -161,34 +177,44 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Restores the previous mask image and its edited-state flag.</summary>
     private void UndoMapStroke()
     {
-        if (_mapUndoPng == null || _mapUndoLayerId == null || !_mapLayerPreviews.TryGetValue(_mapUndoLayerId, out var texture))
+        if (_mapUndo.Count == 0)
             return;
-        if (!texture.LoadImage(_mapUndoPng))
+        var previous = _mapUndo.Peek();
+        if (!_mapLayerPreviews.TryGetValue(previous.LayerId, out var texture)) return;
+        if (!texture.LoadImage(previous.Png))
         {
             _status = "Could not restore the previous map mask.";
             return;
         }
 
-        _mapLayerPixels[_mapUndoLayerId] = texture.GetPixels32();
-        if (_mapUndoLayerHadEdits)
-            _editedMapLayers.Add(_mapUndoLayerId);
+        _mapLayerPixels[previous.LayerId] = texture.GetPixels32();
+        if (previous.HadEdits)
+        {
+            _editedMapLayers.Add(previous.LayerId);
+            _project!.SetMapLayerTexture(previous.LayerId, previous.Png);
+        }
         else
-            _editedMapLayers.Remove(_mapUndoLayerId);
-        var layer = _project!.MapLayers.First(item => item.Id == _mapUndoLayerId);
+        {
+            _editedMapLayers.Remove(previous.LayerId);
+            _project!.ClearMapLayerTexture(previous.LayerId);
+        }
+        var layer = _project!.MapLayers.First(item => item.Id == previous.LayerId);
+        if (previous.ColourChange is var change && change.HasValue)
+        {
+            _project.SetRegionColour(layer, layer.Regions.First(region => region.Id == change.Value.RegionId), change.Value.Previous);
+            _mapRgbDrafts.Remove(layer.Id + "/" + change.Value.RegionId);
+        }
         CachePoiPositions(layer, texture);
-        _mapUndoPng = null;
-        _mapUndoLayerId = null;
+        _mapUndo.Pop();
         _status = "Restored the map mask before the last change.";
     }
 
     /// <summary>Snapshots the selected mask before a change replaces its pixels.</summary>
-    private void CaptureMapUndo(string layerId)
+    private void CaptureMapUndo(string layerId, (string RegionId, MapRgbValue Previous)? colourChange = null)
     {
         if (!_mapLayerPreviews.TryGetValue(layerId, out var texture) || texture == null)
             return;
-        _mapUndoPng = texture.EncodeToPNG();
-        _mapUndoLayerId = layerId;
-        _mapUndoLayerHadEdits = _editedMapLayers.Contains(layerId);
+        _mapUndo.Push(layerId, texture.EncodeToPNG(), _editedMapLayers.Contains(layerId), colourChange);
     }
 
     /// <summary>Restores the selected layer's original mask or its newly created blank base.</summary>

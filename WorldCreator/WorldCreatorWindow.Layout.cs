@@ -201,22 +201,6 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Space(CardSpacing);
     }
 
-    /// <summary>Shows the map-linked field count and captures the map field filter.</summary>
-    private void DrawMapFilterCard()
-    {
-        GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
-        GUILayout.Label("MAP DATA", _sectionStyle!);
-        GUILayout.Label(
-            _project!.MapFields.Count + " map-linked XML values. Changes are shared with Advanced and included in the created world mod.",
-            _mutedStyle!
-        );
-        GUILayout.BeginHorizontal();
-        GUILayout.Label("Filter map fields", GUILayout.Width(130));
-        _advancedFilter = GUILayout.TextField(_advancedFilter);
-        GUILayout.EndHorizontal();
-        GUILayout.EndVertical();
-    }
-
     /// <summary>Arranges atmosphere, gas reference, temperature, climate and environment controls.</summary>
     private void DrawEnvironmentPageCards()
     {
@@ -264,6 +248,7 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Renders fields not already represented by page-specific controls, applying the current filter.</summary>
     private void DrawRemainingPageFields()
     {
+        if (_page == 7) return;
         var fields = _page >= 8 || _page == 3 || _page == 5 ? new List<WorldProject.Field>() : Fields();
         var weatherFieldsRendered = false;
         if (_page == 1 || _page == 2)
@@ -292,10 +277,7 @@ public sealed partial class WorldCreatorWindow
         {
             if (_page == 0 || _page == 4 || _page == 6 || _page == 7)
                 GUILayout.Space(CardSpacing);
-            if (_page == 7)
-                DrawMapFieldCards(fields);
-            else
-                DrawFieldCards(fields);
+            DrawFieldCards(fields);
         }
     }
 
@@ -325,10 +307,6 @@ public sealed partial class WorldCreatorWindow
             DrawAdvancedFilterCard();
         }
 
-        if (_page == 7 && _project != null)
-        {
-            DrawMapFilterCard();
-        }
 
         if (_page == 1 && _project != null)
         {

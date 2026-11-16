@@ -273,6 +273,7 @@ internal sealed partial class WorldProject
             var interfaceRecords = XDocument.Load(importedEnglishFile).Root?.Element("Interface")?.Elements("Record") ?? Enumerable.Empty<XElement>();
             var translations = interfaceRecords.Where(r => !string.IsNullOrWhiteSpace((string? )r.Element("Key"))).GroupBy(r => (string)r.Element("Key")!, StringComparer.Ordinal)
                 .ToDictionary(g => g.Key, g => (string? )g.First().Element("Value") ?? g.Key, StringComparer.Ordinal);
+            foreach (var pair in translations) _sourceMapText[pair.Key] = pair.Value;
             foreach (var eventElement in _weatherLibrary.Elements("WeatherEvent"))
             {
                 var weatherId = (string? )eventElement.Attribute("Id");

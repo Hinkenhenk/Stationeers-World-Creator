@@ -18,6 +18,7 @@ public sealed partial class WorldCreatorWindow
     private readonly HashSet<string> _selectedMapLayers = new HashSet<string>();
     private Vector2 _mapLayerScroll;
     private int _mapMaskAssetSelection;
+    private readonly Dictionary<string, Vector2> _mapRegionScrolls = new Dictionary<string, Vector2>();
     /// <summary>Releases old map editing state and loads the current world minimap when available.</summary>
     private void LoadMapPreview()
     {
@@ -39,8 +40,23 @@ public sealed partial class WorldCreatorWindow
         _paintMode = false;
         _eraseMapMode = false;
         _brushRadius = 7f;
-        _mapUndoPng = null;
-        _mapUndoLayerId = null;
+        _mapUndo.Clear();
+        _editPlayableArea = false;
+        _playableAreaShape = new PlayableAreaShape();
+        _selectedBoundaryCorner = -1;
+        _mapZoom = 1;
+        _mapPan = Vector2.zero;
+        _mapPanning = false;
+        _mapRgbDrafts.Clear();
+        _pixelMapBrush = true;
+        _pipetteMapMode = false;
+        _lastPaintedMapPixel = null;
+        foreach (var boundary in _project!.MapLayers.Where(layer => _project.IsPlayableAreaLayer(layer.Id)))
+        {
+            _selectedMapLayers.Add(boundary.Id);
+            LoadMapLayerPreview(boundary);
+        }
+        LoadPlayableAreaReference();
         var relative = _project?.MiniMapAssetPath;
         if (string.IsNullOrWhiteSpace(relative))
             return;
@@ -66,7 +82,7 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Arranges the world map canvas beside its layer, mask and painting tools.</summary>
+    /// <summary>Arranges the square world map above its layer, mask and painting tools.</summary>
     private void DrawMapPreview()
     {
         GUILayout.BeginVertical(_rowStyle!);
@@ -78,12 +94,16 @@ public sealed partial class WorldCreatorWindow
         if (baseMapImage == null)
             GUILayout.Label("Blank geographic canvas. Add a PNG/JPG from the Asset library if you want a visual guide.", _mutedStyle!);
         {
-            var rect = GUILayoutUtility.GetAspectRect(1f, GUILayout.ExpandWidth(true));
+            var size = Math.Max(220, Math.Min(PageContentWidth - 400, _window.height - 380));
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            var rect = GUILayoutUtility.GetRect(size, size, GUILayout.Width(size), GUILayout.Height(size));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
             GUI.Box(rect, "");
-            var aspect = baseMapImage == null ? 1f : (float)baseMapImage.width / Math.Max(1, baseMapImage.height);
-            var width = Math.Min(rect.width - 16, (rect.height - 16) * aspect);
-            var height = width / aspect;
-            var mapRect = new Rect(rect.center.x - width / 2, rect.center.y - height / 2, width, height);
+            var width = rect.width - 16;
+            var height = width;
+            var mapRect = BeginMapViewport(new Rect(rect.center.x - width / 2, rect.center.y - height / 2, width, height));
             if (baseMapImage != null)
                 GUI.DrawTexture(mapRect, baseMapImage, ScaleMode.ScaleToFit);
             else
@@ -105,29 +125,26 @@ public sealed partial class WorldCreatorWindow
 
             foreach (var poi in _project!.PointsOfInterest)
             {
-                var poiLayer = _project!.MapLayers.FirstOrDefault(layer => layer.Regions.Any(region => region.Id == poi.RegionId));
-                if (poiLayer == null || !_selectedMapLayers.Contains(poiLayer.Id) || !_poiPositions.TryGetValue(poi.RegionId, out var position))
-                    continue;
+                var poiLayer = _project.MapLayers.FirstOrDefault(layer => layer.Regions.Any(region => region.Id == poi.RegionId));
+                if (poiLayer == null || !_selectedMapLayers.Contains(poiLayer.Id) || !_poiPositions.TryGetValue(poi.RegionId, out var position)) continue;
                 var point = new Vector2(mapRect.x + position.x * mapRect.width, mapRect.y + position.y * mapRect.height);
-                var marker = new Rect(point.x - 5, point.y - 5, 10, 10);
-                var oldColor = GUI.color;
-                GUI.color = new Color(1f, 0.78f, 0.25f, 1f);
-                GUI.DrawTexture(marker, Texture2D.whiteTexture);
-                GUI.color = oldColor;
-                GUI.Label(new Rect(point.x + 7, point.y - 9, 150, 18), ShortLabel(poi.Id), _mutedStyle!);
+                var previous = GUI.color;
+                GUI.color = new Color(1, .78f, .25f);
+                GUI.DrawTexture(new Rect(point.x - 5, point.y - 5, 10, 10), Texture2D.whiteTexture);
+                GUI.color = previous;
+                GUI.Label(new Rect(point.x + 7, point.y - 9, 150, 18), _project.GetPoiText(poi, "Name"), _mutedStyle!);
             }
-
+            DrawPlayableArea(mapRect);
             DrawMapPaint(mapRect);
+            GUI.EndGroup();
         }
-
-        GUILayout.Label(
-            _mapReferencePreview == null ? "Painted masks are included as world-specific PNG assets when you create the world mod; built-in template files stay unchanged." : "The library image is a visual guide only. Painted masks are included as world-specific PNG assets in the created mod.",
-            _mutedStyle!
-        );
+        GUILayout.Label("Edited masks are packaged with this world; source files stay unchanged.", _mutedStyle!);
         GUILayout.EndVertical();
         GUILayout.Space(CardSpacing);
-        DrawMapToolsCard();
+        DrawMapLayerSelector();
         GUILayout.EndHorizontal();
+        GUILayout.Space(CardSpacing);
+        DrawMapToolsCard();
         GUILayout.EndVertical();
     }
 
@@ -138,6 +155,7 @@ public sealed partial class WorldCreatorWindow
         try
         {
             texture = new Texture2D(512, 512, TextureFormat.RGBA32, false);
+            texture.filterMode = FilterMode.Point;
             texture.name = "World Creator blank geographic map";
             var pixels = new Color32[512 * 512];
             for (var i = 0; i < pixels.Length; i++)
@@ -154,7 +172,6 @@ public sealed partial class WorldCreatorWindow
             _editedMapLayers.Add(id);
             _paintLayerId = id;
             _paintRegionId = _project!.MapLayers.Last(layer => layer.Id == id).Regions[0].Id;
-            _mapUndoPng = null;
             CachePoiPositions(_project!.MapLayers.Last(layer => layer.Id == id), texture);
             _status = "Created an RGB24 geographic region layer. Add named regions and paint them before creating the world mod.";
             texture = null;
@@ -275,12 +292,14 @@ public sealed partial class WorldCreatorWindow
         {
             if (!replacement.LoadImage(File.ReadAllBytes(asset.FullPath)))
                 throw new InvalidDataException("The library image could not be decoded as a PNG.");
+            replacement.filterMode = FilterMode.Point;
             var pixels = replacement.GetPixels32();
             var regionColors = new HashSet<uint>(layer.Regions.Select(region => ColorKey(region.R, region.G, region.B)));
             var invalidPixels = pixels.Count(pixel => pixel.a != 0 && !regionColors.Contains(ColorKey(pixel.r, pixel.g, pixel.b)));
             if (invalidPixels > 0)
                 throw new InvalidDataException(invalidPixels + " visible pixels do not match this layer's exact region colors. Use a non-antialiased mask with the defined palette.");
             replacement.name = "World Creator layer " + layer.Id + " (library mask)";
+            replacement.filterMode = FilterMode.Point;
             CaptureMapUndo(layer.Id);
             if (_mapLayerPreviews.TryGetValue(layer.Id, out var previous) && previous != null)
                 Destroy(previous);
@@ -305,12 +324,23 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginVertical(_rowStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label(HumanizeXmlName(layer.Id), _sectionStyle!);
         GUILayout.Label((_project!.IsGeographicLayer(layer.Id) ? "Geographic regions" : "Region mask") + " · " + layer.Regions.Count + " regions", _mutedStyle!);
+        if (_project.IsGeographicLayer(layer.Id))
+        {
+            var field = _project.MapFields.FirstOrDefault(item => item.Label.Contains("/DefaultRegionName") && item.Label.EndsWith("/@Value"));
+            if (field != null)
+            {
+                GUILayout.Label("Name outside named regions", _mutedStyle!);
+                field.Value = GUILayout.TextField(field.Value, _inputStyle!, GUILayout.Width(220), GUILayout.Height(32));
+            }
+        }
         _mapRegionScrolls.TryGetValue(layer.Id, out var regionScroll);
-        _mapRegionScrolls[layer.Id] = GUILayout.BeginScrollView(regionScroll, GUILayout.Height(Math.Min(360, Math.Max(90, layer.Regions.Count * 90))));
-        foreach (var region in layer.Regions)
+        _mapRegionScrolls[layer.Id] = GUILayout.BeginScrollView(regionScroll, false, true, GUIStyle.none, GUI.skin.verticalScrollbar,
+            GUILayout.Height(Math.Min(420, Math.Max(120, ((layer.Regions.Count + 3) / 4) * 110))));
+        DrawCardColumns(layer.Regions, region =>
         {
             DrawMapRegionCard(layer, region);
-        }
+            return false;
+        }, inset: _cardStyle!.padding.horizontal + _rowStyle!.padding.horizontal + 35, minimumWidth: 420, maximumWidth: 620, maximumColumns: 4);
 
         GUILayout.EndScrollView();
         if (_project!.IsGeographicLayer(layer.Id) && NativeButton("+ Add named region", _buttonStyle!, GUILayout.Height(26)))
@@ -334,23 +364,21 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Draws one region colour and name, and selects that region for painting.</summary>
     private void DrawMapRegionCard(WorldProject.MapLayer layer, WorldProject.MapLayer.Region region)
     {
-        GUILayout.Space(CardSpacing);
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.BeginHorizontal();
-        var swatch = GUILayoutUtility.GetRect(14, 14, GUILayout.Width(14), GUILayout.Height(14));
-        var oldColor = GUI.color;
-        GUI.color = new Color(region.R / 255f, region.G / 255f, region.B / 255f, 1);
-        GUI.DrawTexture(swatch, Texture2D.whiteTexture);
-        GUI.color = oldColor;
+        DrawMapColourCube(new Color(region.R / 255f, region.G / 255f, region.B / 255f));
         var regionName = _project!.GetMapRegionName(region);
-        if (region.NameKey != null)
-            _project!.SetMapRegionName(region, GUILayout.TextField(regionName, _inputStyle!, GUILayout.MinWidth(80)));
+        if (region.NameKey != null || _project.PointsOfInterest.Any(poi => poi.RegionId == region.Id))
+            _project!.SetMapRegionName(region, GUILayout.TextField(regionName, _inputStyle!, GUILayout.MinWidth(70), GUILayout.MaxWidth(160), GUILayout.Height(32)));
         else
-            GUILayout.Label(HumanizeXmlName(region.Id), _mutedStyle!);
-        GUILayout.EndHorizontal();
+            GUILayout.Label(HumanizeXmlName(region.Id), _mutedStyle!, GUILayout.MinWidth(70), GUILayout.MaxWidth(160), GUILayout.Height(32));
+        GUILayout.Space(10);
         var selectedRegion = _paintLayerId == layer.Id && _paintRegionId == region.Id;
-        if (NativeButton((selectedRegion ? "Selected  " : "Select  ") + region.Id, _buttonStyle!, GUILayout.Height(24)))
+        if (!_project!.IsPlayableAreaLayer(layer.Id) && NativeButton(selectedRegion ? "Selected colour" : "Use this region colour", _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32)))
         {
+            _editPlayableArea = false;
+            _pipetteMapMode = false;
+            _paintMode = true;
             _paintLayerId = layer.Id;
             _paintRegionId = region.Id;
             if (!_createdMapLayers.Contains(layer.Id))
@@ -359,6 +387,13 @@ public sealed partial class WorldCreatorWindow
                 LoadMapLayerPreview(layer);
         }
 
+        GUILayout.EndHorizontal();
+        DrawMapRgbField(layer, region);
+        foreach (var poi in _project!.PointsOfInterest.Where(item => item.RegionId == region.Id))
+        {
+            GUILayout.Label("Description", _mutedStyle!);
+            _project.SetPoiText(poi, "Description", GUILayout.TextArea(_project.GetPoiText(poi, "Description"), _multilineStyle!, GUILayout.Height(64)));
+        }
         GUILayout.EndVertical();
     }
 
@@ -412,7 +447,7 @@ public sealed partial class WorldCreatorWindow
                 _mapMaskAssetSelection = (_mapMaskAssetSelection + 1) % pngAssets.Length;
             GUILayout.EndHorizontal();
             var guiWasEnabled = GUI.enabled;
-            GUI.enabled = guiWasEnabled && _paintLayerId != null && _selectedMapLayers.Contains(_paintLayerId) && _project!.MapLayers.Any(layer => layer.Id == _paintLayerId);
+            GUI.enabled = guiWasEnabled && _paintLayerId != null && !_project!.IsPlayableAreaLayer(_paintLayerId) && _selectedMapLayers.Contains(_paintLayerId) && _project!.MapLayers.Any(layer => layer.Id == _paintLayerId);
             if (NativeButton("Use PNG as selected layer mask", _buttonStyle!, GUILayout.Height(28)))
                 ImportMapMask(pngAssets[_mapMaskAssetSelection]);
             GUI.enabled = guiWasEnabled;
@@ -420,47 +455,84 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Edits paint mode, brush radius and the available base-region eraser.</summary>
+    /// <summary>Selects the exact region palette, pipette and source-pixel brush controls below the map.</summary>
     private void DrawMapBrushControls()
     {
-        _paintMode = GUILayout.Toggle(_paintMode, "Paint selected region on map");
-        if (_paintMode)
+        GUILayout.Label("MASK PAINTING", _sectionStyle!);
+        var layers = _project!.MapLayers.Where(layer => !_project.IsPlayableAreaLayer(layer.Id)).ToArray();
+        if (layers.Length == 0)
         {
-            GUILayout.Label("Brush radius: " + Mathf.RoundToInt(_brushRadius) + " preview pixels", _mutedStyle!);
-            _brushRadius = GUILayout.HorizontalSlider(_brushRadius, 2f, 24f);
-            var eraseLayer = _paintLayerId == null ? null : _project!.MapLayers.FirstOrDefault(layer => layer.Id == _paintLayerId);
-            if (eraseLayer != null && _createdMapLayers.Contains(eraseLayer.Id) && eraseLayer.Regions.Count > 0)
-                _eraseMapMode = GUILayout.Toggle(_eraseMapMode, "Erase to base region (" + _project!.GetMapRegionName(eraseLayer.Regions[0]) + ")");
-            GUILayout.Label(
-                _paintLayerId == null || (_paintRegionId == null && !_eraseMapMode) ? "Select a layer and region first." : _eraseMapMode && _paintLayerId != null && _createdMapLayers.Contains(_paintLayerId) ? "Left-drag on the map to restore pixels to the base region color." : "Left-drag on the map to paint " + _paintRegionId + ". This changes the mask used in the created world mod.",
-                _mutedStyle!
-            );
+            GUILayout.Label("Create a geographic layer to define colours and paint a new mask.", _mutedStyle!);
+            return;
         }
+        GUILayout.BeginHorizontal();
+        var selected = Math.Max(0, Array.FindIndex(layers, layer => layer.Id == _paintLayerId));
+        var next = NativeDropdown("paint-mask-layer", selected, layers.Select(layer => layer.Id).ToArray(), _buttonStyle!, GUILayout.Width(340), GUILayout.Height(32));
+        var layer = layers[next];
+        if (next != selected && _selectedMapLayers.Add(layer.Id)) LoadMapLayerPreview(layer);
+        if (_paintLayerId != layer.Id)
+        {
+            _paintLayerId = layer.Id;
+            _paintRegionId = null;
+            _eraseMapMode = false;
+        }
+        if (NativeButton(_pipetteMapMode ? "Pipette active" : "Pick region (pipette)", _buttonStyle!, GUILayout.Width(190), GUILayout.Height(32)))
+        {
+            _pipetteMapMode = true;
+            _editPlayableArea = false;
+            _paintMode = false;
+            if (_selectedMapLayers.Add(layer.Id)) LoadMapLayerPreview(layer);
+        }
+        GUILayout.EndHorizontal();
+        var paint = GUILayout.Toggle(_paintMode, "Paint selected region on map");
+        if (paint && !_paintMode) { _editPlayableArea = false; _pipetteMapMode = false; }
+        _paintMode = paint && !_editPlayableArea && !_pipetteMapMode;
+        _pixelMapBrush = GUILayout.Toggle(_pixelMapBrush, "1 pixel brush (exact mask pixel)");
+        if (!_pixelMapBrush)
+        {
+            GUILayout.Label("Brush radius: " + Mathf.RoundToInt(_brushRadius) + " mask pixels", _mutedStyle!);
+            _brushRadius = GUILayout.HorizontalSlider(_brushRadius, 1, 24, GUILayout.Width(340));
+        }
+        if (_createdMapLayers.Contains(layer.Id) && layer.Regions.Count > 0)
+            _eraseMapMode = GUILayout.Toggle(_eraseMapMode, "Erase to base region (" + _project.GetMapRegionName(layer.Regions[0]) + ")");
+        GUILayout.Label(_pipetteMapMode ? "Click a pixel on the map to pick its exact colour and linked region from " + layer.Id + "."
+            : "Choose a region colour below, or use the pipette. Paint over a region to replace it, or extend it with the same colour. Ctrl+Z undoes recent strokes.", _mutedStyle!);
     }
-
     /// <summary>Arranges layer selection, references, mask actions, painting controls and points of interest.</summary>
-    private void DrawMapToolsCard()
+    private void DrawMapLayerSelector()
     {
-        GUILayout.BeginVertical(_cardStyle!, GUILayout.Width(270));
+        GUILayout.BeginVertical(_cardStyle!, GUILayout.Width(280));
         GUILayout.Label("MAP LAYERS", _sectionStyle!);
         if (_project!.CanAddGeographicLayer && NativeButton("+ Create geographic layer", _buttonStyle!, GUILayout.Height(28)))
             CreateGeographicLayer();
-        _mapLayerScroll = GUILayout.BeginScrollView(_mapLayerScroll, GUILayout.Height(210));
+        _mapLayerScroll = GUILayout.BeginScrollView(_mapLayerScroll, GUILayout.Height(Math.Min(360, Math.Max(40, _project.MapLayers.Count * 32))));
         foreach (var layer in _project!.MapLayers)
         {
             DrawMapLayerVisibilityToggle(layer);
         }
 
         GUILayout.EndScrollView();
+        GUILayout.EndVertical();
+    }
+
+    /// <summary>Keeps shape, palette and painting tools below the canvas while only layer visibility stays beside it.</summary>
+    private void DrawMapToolsCard()
+    {
+        GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
+        DrawMapZoomControls();
+        GUILayout.Space(CardSpacing);
+        DrawPlayableAreaControls();
+        GUILayout.Space(CardSpacing);
+        DrawMapBrushControls();
         DrawMapReferencePicker();
-        foreach (var layer in _project!.MapLayers.Where(layer => _selectedMapLayers.Contains(layer.Id)))
+        foreach (var layer in _project!.MapLayers.Where(layer => layer.Id == _paintLayerId))
         {
             DrawMapLayerRegions(layer);
         }
 
         DrawMapStartingMaskPicker();
         var restoreWasEnabled = GUI.enabled;
-        GUI.enabled = restoreWasEnabled && _paintLayerId != null && _selectedMapLayers.Contains(_paintLayerId) && _mapSourcePng.ContainsKey(_paintLayerId);
+        GUI.enabled = restoreWasEnabled && _paintLayerId != null && !_project!.IsPlayableAreaLayer(_paintLayerId) && _selectedMapLayers.Contains(_paintLayerId) && _mapSourcePng.ContainsKey(_paintLayerId);
         if (NativeButton("Restore source mask", _buttonStyle!, GUILayout.Height(28)))
             RestoreMapMask();
         GUI.enabled = restoreWasEnabled;
@@ -471,12 +543,8 @@ public sealed partial class WorldCreatorWindow
             ExportMapMaskPng();
         GUI.enabled = exportWasEnabled;
         GUILayout.Label("PNG copies are saved under Documents/My Games/Stationeers/WorldCreator/MapExports.", _mutedStyle!);
-        DrawMapBrushControls();
-        if (_mapUndoPng != null && NativeButton("Undo last map change", _buttonStyle!, GUILayout.Height(28)))
+        if (_mapUndo.Count > 0 && NativeButton("Undo last map change (Ctrl+Z)", _buttonStyle!, GUILayout.Width(270), GUILayout.Height(32)))
             UndoMapStroke();
-        GUILayout.Label("POINTS OF INTEREST", _sectionStyle!);
-        foreach (var poi in _project!.PointsOfInterest)
-            GUILayout.Label(poi.Id + "  ·  " + poi.RegionId, _mutedStyle!);
         GUILayout.EndVertical();
     }
 
@@ -491,6 +559,11 @@ public sealed partial class WorldCreatorWindow
         {
             _selectedMapLayers.Add(layer.Id);
             LoadMapLayerPreview(layer);
+            if (!_project!.IsPlayableAreaLayer(layer.Id))
+            {
+                _paintLayerId = layer.Id;
+                _paintRegionId = null;
+            }
             if (!_createdMapLayers.Contains(layer.Id))
                 _eraseMapMode = false;
             return;
