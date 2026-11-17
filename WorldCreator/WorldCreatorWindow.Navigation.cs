@@ -15,7 +15,6 @@ public sealed partial class WorldCreatorWindow
         try
         {
             _project = _template == 0 ? WorldProject.CreateBlank(Path.Combine(Application.dataPath, "StreamingAssets")) : new WorldProject(Path.Combine(Application.dataPath, "StreamingAssets"), Files[_template]);
-            _projectOrigin = _template == 0 ? "Blank world" : Names[_template] + " template";
             LoadMapPreview();
             _scroll = Vector2.zero;
             _status = _template == 0 ? "Blank settings created. Add compiled terrain before loading this world in game." : "Template loaded. Create a world mod to keep these settings.";
@@ -189,7 +188,6 @@ public sealed partial class WorldCreatorWindow
             _presetSelection = -1;
             _id = "WC_MyWorld";
             _name = ResolveLoadedWorldDisplayName(path, _project.DisplayName);
-            _projectOrigin = "Loaded custom world";
             _pendingPage = 0;
             LoadMapPreview();
             _pendingScreen = 3;

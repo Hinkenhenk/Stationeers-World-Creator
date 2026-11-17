@@ -438,7 +438,8 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Label(Mathf.RoundToInt(_orbitZoom * 100f) + "%", _mutedStyle!, GUILayout.Width(44));
         if (NativeButton("+", _buttonStyle!, GUILayout.Width(34)))
             _orbitZoom = Mathf.Clamp(_orbitZoom + 0.2f, 0.6f, 2.4f);
-        if (NativeButton("Reset view", _buttonStyle!, GUILayout.Width(100)))
+        GUILayout.Space(10);
+        if (NativeButton("Reset view", _buttonStyle!, GUILayout.Width(150), GUILayout.Height(32)))
         {
             _orbitZoom = 1f;
             _orbitGlobeRotation = DefaultOrbitRotation();

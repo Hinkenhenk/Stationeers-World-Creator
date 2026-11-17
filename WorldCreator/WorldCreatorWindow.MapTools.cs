@@ -123,8 +123,11 @@ public sealed partial class WorldCreatorWindow
         GUI.enabled = enabled && _paintLayerId != null && !_project!.IsPlayableAreaLayer(_paintLayerId) &&
             _selectedMapLayers.Contains(_paintLayerId) && _mapSourcePng.ContainsKey(_paintLayerId);
         if (NativeButton("Restore mask", _buttonStyle!, GUILayout.Width(160), GUILayout.Height(32))) RestoreMapMask();
-        GUI.enabled = enabled && _paintLayerId != null && _selectedMapLayers.Contains(_paintLayerId);
+        GUILayout.Space(10);
+        GUI.enabled = enabled && _paintLayerId != null;
         if (NativeButton("Save mask PNG", _buttonStyle!, GUILayout.Width(160), GUILayout.Height(32))) ExportMapMaskPng();
+        GUILayout.Space(10);
+        if (NativeButton("Save mask to library", _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32))) ExportMapMaskPng(addToLibrary: true);
         GUI.enabled = enabled;
         GUILayout.EndHorizontal();
     }

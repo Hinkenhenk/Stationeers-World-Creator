@@ -77,27 +77,30 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginHorizontal();
         GUILayout.BeginVertical(GUILayout.Width(160));
         GUILayout.Label("WORLD PROJECT", _sectionStyle!);
-        GUILayout.Label(_projectOrigin, _mutedStyle!);
         GUILayout.EndVertical();
         GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
-        HelpLabel(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!);
-        _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
-        GUILayout.EndVertical();
-        GUILayout.BeginVertical(GUILayout.Width(240));
+        GUILayout.BeginHorizontal();
+        HelpLabel(new GUIContent("Display name  ⓘ", "Player-facing name shown in the Stationeers world selection menu."), _mutedStyle!, GUILayout.Height(24));
+        GUILayout.Space(16);
         HelpLabel(
             new GUIContent(
             "World ID  ⓘ",
             "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds."
         ),
-            _mutedStyle!
+            _mutedStyle!, GUILayout.Width(240), GUILayout.Height(24)
         );
+        GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
+        _name = TooltipTextField(_name, "Player-facing name shown in the Stationeers world selection menu.", 0, 30);
+        GUILayout.Space(16);
         _id = TooltipTextField(
             _id,
             "Unique XML identifier for the world mod: 1–47 letters, numbers or underscores. No prefix is required; WC_ is optional. Avoid IDs used by other installed worlds.",
-            0,
+            240,
             30,
             47
         );
+        GUILayout.EndHorizontal();
         GUILayout.EndVertical();
         GUILayout.EndHorizontal();
         GUILayout.EndVertical();

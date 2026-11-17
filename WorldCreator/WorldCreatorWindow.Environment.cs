@@ -99,19 +99,20 @@ public sealed partial class WorldCreatorWindow
         }
 
         GUILayout.EndHorizontal();
+        GUILayout.Space(12);
         GUILayout.BeginHorizontal();
         HelpLabel(
             new GUIContent(
             "Pressure estimate at temperature (K)  ⓘ",
             "This reference temperature is used only for the ideal-gas pressure estimate shown here; it does not change the world's temperature curve."
         ),
-            _mutedStyle!
+            _mutedStyle!, GUILayout.Width(352), GUILayout.Height(32)
         );
         _referenceTemperature = TooltipTextField(
             _referenceTemperature,
             "Reference temperature for the ideal-gas estimate only. This field does not change world settings.",
-            100,
-            26,
+            95,
+            32,
             numeric: true
         );
         var pressureLabel = "- kPa";
@@ -142,7 +143,9 @@ public sealed partial class WorldCreatorWindow
                 pressureLabel = "~" + (total * 8.314462618 * temperature / 8000).ToString("0.##", CultureInfo.InvariantCulture) + " kPa (gas-phase estimate)";
         }
 
-        GUILayout.Label(pressureLabel);
+        GUILayout.Space(10);
+        GUILayout.Label(pressureLabel, GUILayout.Height(32));
+        GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         GUILayout.Label("The ideal-gas estimate includes gases and excludes liquid entries. Actual pressure also depends on temperature, phase changes, and the game's atmosphere simulation.");
         DrawGasComposition();
@@ -244,7 +247,7 @@ public sealed partial class WorldCreatorWindow
             _newGasQuantity,
             "Initial moles of this gas per 8,000-litre atmosphere grid cell. The atmosphere's temperature is set by the world temperature curve, not per gas.",
             95,
-            28,
+            32,
             numeric: true
         );
         GUILayout.Space(10);

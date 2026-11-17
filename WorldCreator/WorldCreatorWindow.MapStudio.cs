@@ -189,10 +189,10 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Saves the selected edited mask as a PNG for reuse outside the world project.</summary>
-    private void ExportMapMaskPng()
+    /// <summary>Saves the selected mask as a PNG, optionally adding it to the persistent asset library.</summary>
+    private void ExportMapMaskPng(bool addToLibrary = false)
     {
-        var layer = _project!.MapLayers.FirstOrDefault(item => item.Id == _paintLayerId && _selectedMapLayers.Contains(item.Id));
+        var layer = _project!.MapLayers.FirstOrDefault(item => item.Id == _paintLayerId);
         if (layer == null)
         {
             _status = "Select a map layer before saving its PNG.";
@@ -211,7 +211,13 @@ public sealed partial class WorldCreatorWindow
             for (var suffix = 2; File.Exists(path); suffix++)
                 path = Path.Combine(folder, stem + "_" + suffix.ToString(CultureInfo.InvariantCulture) + ".png");
             File.WriteAllBytes(path, texture.EncodeToPNG());
-            _status = "Saved the selected map mask to " + path;
+            if (addToLibrary)
+            {
+                var asset = AssetLibrary.Import(path, "Map / UI");
+                _assetLibraryLoaded = false;
+                _status = "Saved " + asset.Name + " to Asset Libraries under Map / UI.";
+            }
+            else _status = "Saved the selected map mask to " + path;
         }
         catch (Exception e)
         {
@@ -418,7 +424,7 @@ public sealed partial class WorldCreatorWindow
             if (NativeButton("›", _buttonStyle!, GUILayout.Width(32)))
                 _mapReferenceSelection = (_mapReferenceSelection + 1) % referenceAssets.Length;
             GUILayout.EndHorizontal();
-            if (NativeButton("Use as visual guide", _buttonStyle!, GUILayout.Height(28)))
+            if (NativeButton("Use as visual guide", _buttonStyle!, GUILayout.Width(300), GUILayout.Height(32)))
                 SetMapReferenceImage(referenceAssets[_mapReferenceSelection]);
             if (_mapReferencePreview != null && NativeButton("Clear visual guide", _buttonStyle!, GUILayout.Height(26)))
             {
@@ -452,7 +458,7 @@ public sealed partial class WorldCreatorWindow
             GUILayout.EndHorizontal();
             var guiWasEnabled = GUI.enabled;
             GUI.enabled = guiWasEnabled && _paintLayerId != null && !_project!.IsPlayableAreaLayer(_paintLayerId) && _selectedMapLayers.Contains(_paintLayerId) && _project!.MapLayers.Any(layer => layer.Id == _paintLayerId);
-            if (NativeButton("Use PNG as selected layer mask", _buttonStyle!, GUILayout.Height(28)))
+            if (NativeButton("Use PNG as selected layer mask", _buttonStyle!, GUILayout.Width(300), GUILayout.Height(32)))
                 ImportMapMask(pngAssets[_mapMaskAssetSelection]);
             GUI.enabled = guiWasEnabled;
             GUILayout.Label("Select a layer and region above. Visible pixels must use its exact region colors; transparent pixels are allowed.", _mutedStyle!);

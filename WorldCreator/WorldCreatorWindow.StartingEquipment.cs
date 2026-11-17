@@ -66,7 +66,7 @@ public sealed partial class WorldCreatorWindow
         if (!editable)
         {
             GUILayout.Label("Edit a private copy of the loaded lander, crates and player kits. The installed world stays unchanged.", _mutedStyle!);
-            if (NativeButton("Edit this equipment", _buttonStyle!, GUILayout.Height(30)))
+            if (NativeButton("Edit this equipment", _buttonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
                 _pendingEquipmentChange = () =>
                 {
                     _equipmentProfile = _project!.EditStartingEquipment(conditionId);
@@ -74,7 +74,7 @@ public sealed partial class WorldCreatorWindow
                     _status = "Equipment copied into this world. Select a container, then choose an empty slot to add supplies.";
                 };
         }
-        else if (NativeButton("+ Add another lander", _buttonStyle!, GUILayout.Height(30)))
+        else if (NativeButton("+ Add another lander", _buttonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
             _pendingEquipmentChange = () =>
             {
                 _equipmentProfile = conditionId;
@@ -160,7 +160,8 @@ public sealed partial class WorldCreatorWindow
             GUILayout.Label(error.Message, _mutedStyle!);
         }
 
-        if (NativeButton("Close item search", _buttonStyle!, GUILayout.Height(30)))
+        GUILayout.Space(12);
+        if (NativeButton("Close item search", _buttonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
             _pendingEquipmentChange = () => _equipmentItemSearch = false;
         GUILayout.EndVertical();
     }
@@ -171,12 +172,13 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginVertical(_cardStyle!);
         GUILayout.Label("ADD ANOTHER LANDER", _sectionStyle!);
         GUILayout.Label("Adds an empty lander to the World event. Use its Contents button to fill its slots.", _mutedStyle!);
-        _equipmentSearch = GUILayout.TextField(_equipmentSearch, _inputStyle!);
+        _equipmentSearch = GUILayout.TextField(_equipmentSearch, _inputStyle!, GUILayout.Width(540), GUILayout.Height(32));
+        GUILayout.Space(12);
         var landers = EquipmentPrefabRules.Prefabs.Values.OfType<Lander>().Where(p => p.PrefabName.IndexOf(_equipmentAppliedSearch, StringComparison.OrdinalIgnoreCase) >= 0 || p.DisplayName.IndexOf(_equipmentAppliedSearch, StringComparison.OrdinalIgnoreCase) >= 0)
             .OrderBy(p => p.DisplayName)
             .ToArray();
         foreach (var lander in landers)
-            if (NativeButton("Add " + lander.DisplayName + " · " + lander.PrefabName, _buttonStyle!, GUILayout.Height(30)))
+            if (NativeButton("Add " + lander.DisplayName + " · " + lander.PrefabName, _buttonStyle!, GUILayout.Width(620), GUILayout.Height(32)))
                 _pendingEquipmentChange = () =>
                 {
                     _project!.AddEquipmentLander(conditionId, lander.PrefabName, () => EquipmentPrefabRules.Find(lander.PrefabName) is Lander);
@@ -185,7 +187,8 @@ public sealed partial class WorldCreatorWindow
                 };
         if (landers.Length == 0)
             GUILayout.Label("No matching lander prefab is available.", _mutedStyle!);
-        if (NativeButton("Cancel", _buttonStyle!, GUILayout.Height(30)))
+        GUILayout.Space(12);
+        if (NativeButton("Cancel", _buttonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
             _pendingEquipmentChange = () => _equipmentLanderPicker = false;
         GUILayout.EndVertical();
     }
@@ -197,17 +200,19 @@ public sealed partial class WorldCreatorWindow
     {
         GUILayout.Label("Slot " + (index + 1), _sectionStyle!);
         GUILayout.Label("Search compatible items by name or prefab ID", _mutedStyle!);
-        _equipmentSearch = GUILayout.TextField(_equipmentSearch, _inputStyle!);
+        _equipmentSearch = GUILayout.TextField(_equipmentSearch, _inputStyle!, GUILayout.Width(540), GUILayout.Height(32));
+        GUILayout.Space(12);
         GUILayout.BeginHorizontal();
         GUILayout.Label("Quantity", _mutedStyle!, GUILayout.Width(80));
         _equipmentQuantity = GUILayout.TextField(_equipmentQuantity, _inputStyle!, GUILayout.Width(80));
         GUILayout.EndHorizontal();
+        GUILayout.Space(12);
         var slot = parent.Slots[index];
         var matches = EquipmentPrefabRules.Prefabs.Values.Where(p => p is DynamicThing && !(p is Lander) && (_equipmentAppliedSearch.Length == 0 || p.PrefabName.IndexOf(_equipmentAppliedSearch, StringComparison.OrdinalIgnoreCase) >= 0 || p.DisplayName.IndexOf(_equipmentAppliedSearch, StringComparison.OrdinalIgnoreCase) >= 0) && EquipmentPrefabRules.Accepts(parent, slot, p))
             .OrderBy(p => p.DisplayName, StringComparer.OrdinalIgnoreCase).Take(12)
             .ToArray();
         foreach (var item in matches)
-            if (NativeButton("Add " + item.DisplayName + " · " + item.PrefabName, _buttonStyle!, GUILayout.Height(30)))
+            if (NativeButton("Add " + item.DisplayName + " · " + item.PrefabName, _buttonStyle!, GUILayout.Width(620), GUILayout.Height(32)))
             {
                 if (!int.TryParse(_equipmentQuantity, NumberStyles.Integer, CultureInfo.InvariantCulture, out var quantity) || quantity < 1 || quantity > EquipmentPrefabRules.MaximumQuantity(item))
                     _status = "Quantity must be between 1 and " + EquipmentPrefabRules.MaximumQuantity(item) + " for this item.";

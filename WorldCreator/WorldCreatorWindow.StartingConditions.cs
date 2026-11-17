@@ -28,8 +28,9 @@ public sealed partial class WorldCreatorWindow
             _startConditionSelection = Mathf.Clamp(_startConditionSelection, 0, options.Length - 1);
             GUILayout.BeginHorizontal();
             GUILayout.Label("Installed profile", _mutedStyle!, GUILayout.Width(140));
-            _startConditionSelection = NativeDropdown("start-profile", _startConditionSelection, optionLabels, _buttonStyle!, GUILayout.MinWidth(240), GUILayout.ExpandWidth(true));
-            if (NativeButton("Add copy to this world", _primaryButtonStyle!, GUILayout.Width(230)))
+            _startConditionSelection = NativeDropdown("start-profile", _startConditionSelection, optionLabels, _buttonStyle!, GUILayout.Width(420), GUILayout.Height(32));
+            GUILayout.Space(10);
+            if (NativeButton("Add copy to this world", _primaryButtonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
             {
                 QueueInstalledStartingProfileCopy(options);
             }
@@ -38,7 +39,8 @@ public sealed partial class WorldCreatorWindow
         }
         else
             GUILayout.Label("No installed StartCondition definitions were found.", _mutedStyle!);
-        if (NativeButton("+ New blank condition", _buttonStyle!, GUILayout.Width(230)))
+        GUILayout.Space(10);
+        if (NativeButton("+ New blank condition", _buttonStyle!, GUILayout.Width(230), GUILayout.Height(32)))
             try
             {
                 _pendingEquipmentChange = () =>
@@ -147,7 +149,8 @@ public sealed partial class WorldCreatorWindow
             DrawStartingConditionOptions(condition);
         }
 
-        var showReferences = GUILayout.Toggle(_showStartReferences, "Show spawn references and events", _buttonStyle!, GUILayout.Height(30));
+        GUILayout.Space(12);
+        var showReferences = GUILayout.Toggle(_showStartReferences, "Show spawn references and events", _buttonStyle!, GUILayout.Width(310), GUILayout.Height(32));
         if (showReferences != _showStartReferences)
             _pendingEquipmentChange = () => _showStartReferences = showReferences;
         if (_showStartReferences)
@@ -203,11 +206,15 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Queues new supply crates or spawn references for a custom starting profile.</summary>
     private void DrawStartingConditionAdditions(WorldProject.StartConditionView condition)
     {
-        GUILayout.Space(5);
+        GUILayout.Space(16);
+        GUILayout.BeginVertical(_cardStyle!);
+        GUILayout.Label("ADD EQUIPMENT AND SPAWN REFERENCES", _sectionStyle!);
         GUILayout.Label("Add a supply crate, then edit its slots through Starting Equipment above.", _mutedStyle!);
         GUILayout.BeginHorizontal();
-        _newStartCrateName = GUILayout.TextField(_newStartCrateName, _inputStyle!, GUILayout.ExpandWidth(true));
-        if (NativeButton("+ Add supply crate", _buttonStyle!, GUILayout.Width(170)))
+        GUILayout.Label("Crate name", _mutedStyle!, GUILayout.Width(110), GUILayout.Height(32));
+        _newStartCrateName = GUILayout.TextField(_newStartCrateName, _inputStyle!, GUILayout.Width(320), GUILayout.Height(32));
+        GUILayout.Space(10);
+        if (NativeButton("+ Add supply crate", _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32)))
             try
             {
                 _pendingEquipmentChange = () =>
@@ -226,11 +233,15 @@ public sealed partial class WorldCreatorWindow
             }
 
         GUILayout.EndHorizontal();
+        GUILayout.Space(12);
         GUILayout.BeginHorizontal();
-        _newStartSpawnId = GUILayout.TextField(_newStartSpawnId, _inputStyle!, GUILayout.MinWidth(180), GUILayout.ExpandWidth(true));
+        GUILayout.Label("Spawn ID", _mutedStyle!, GUILayout.Width(110), GUILayout.Height(32));
+        _newStartSpawnId = GUILayout.TextField(_newStartSpawnId, _inputStyle!, GUILayout.Width(320), GUILayout.Height(32));
+        GUILayout.Space(10);
         _newStartEventSelection = Mathf.Clamp(_newStartEventSelection, 0, StartEvents.Length - 1);
-        _newStartEventSelection = NativeSelectionGrid(_newStartEventSelection, StartEventLabels, 3, _buttonStyle!, GUILayout.Width(390));
-        if (NativeButton("+ Add spawn", _buttonStyle!, GUILayout.Width(120)))
+        _newStartEventSelection = NativeDropdown("new-spawn-event", _newStartEventSelection, StartEventLabels, _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32));
+        GUILayout.Space(10);
+        if (NativeButton("+ Add spawn", _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32)))
             try
             {
                 _pendingEquipmentChange = () =>
@@ -245,6 +256,7 @@ public sealed partial class WorldCreatorWindow
             }
 
         GUILayout.EndHorizontal();
+        GUILayout.EndVertical();
     }
 
     /// <summary>Edits one spawn reference and its role, queuing removal without changing the active control tree.</summary>
@@ -255,7 +267,8 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Label("Spawn ID", _mutedStyle!, GUILayout.Width(90));
         var spawnId = GUILayout.TextField(originalSpawnId, _inputStyle!, GUILayout.MinWidth(180), GUILayout.ExpandWidth(true));
         var eventIndex = Array.IndexOf(StartEvents, originalEvent);
-        var nextEventIndex = eventIndex < 0 ? -1 : NativeSelectionGrid(eventIndex, StartEventLabels, 3, _buttonStyle!, GUILayout.Width(390));
+        GUILayout.Space(10);
+        var nextEventIndex = eventIndex < 0 ? -1 : NativeDropdown("spawn-event-" + spawnIndex, eventIndex, StartEventLabels, _buttonStyle!, GUILayout.Width(200), GUILayout.Height(32));
         if (eventIndex < 0)
             GUILayout.Label("Unrecognized event: " + originalEvent, _mutedStyle!, GUILayout.Width(210));
         if (NativeButton("Remove", _buttonStyle!, GUILayout.Width(90)))

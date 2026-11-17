@@ -51,7 +51,9 @@ public sealed partial class WorldCreatorWindow
         _assetPath = GUILayout.TextField(_assetPath, _inputStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("Enter a full file path. Supported: PNG, JPG, JPEG, DDS, TIF, TIFF, RAW, DATA, DAT.", _mutedStyle!);
         _assetCategorySelection = Mathf.Clamp(_assetCategorySelection, 0, AssetCategories.Length - 1);
-        _assetCategorySelection = NativeSelectionGrid(_assetCategorySelection, AssetCategories, 5, _buttonStyle!);
+        GUILayout.Space(12);
+        _assetCategorySelection = DrawAssetFilterButtons(_assetCategorySelection, AssetCategories);
+        GUILayout.Space(12);
         if (NativeButton("+ Import file to library", _primaryButtonStyle!, GUILayout.Width(210)))
         {
             try
@@ -82,18 +84,23 @@ public sealed partial class WorldCreatorWindow
 
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("Browse library", _sectionStyle!);
-        _assetTypeFilter = NativeSelectionGrid(_assetTypeFilter, AssetTypeFilters, 3, _buttonStyle!);
+        GUILayout.Space(10);
+        _assetTypeFilter = DrawAssetFilterButtons(_assetTypeFilter, AssetTypeFilters);
         var categoryOptions = new[]
         {
             "All categories"
         }.Concat(AssetCategories).ToArray();
         _assetCategoryFilter = Mathf.Clamp(_assetCategoryFilter, 0, categoryOptions.Length - 1);
-        _assetCategoryFilter = NativeSelectionGrid(_assetCategoryFilter, categoryOptions, 3, _buttonStyle!);
+        GUILayout.Space(10);
+        _assetCategoryFilter = DrawAssetFilterButtons(_assetCategoryFilter, categoryOptions);
+        GUILayout.Space(16);
         GUILayout.BeginHorizontal();
         GUILayout.Label("Search", GUILayout.Width(58));
-        _assetSearch = GUILayout.TextField(_assetSearch, _inputStyle!, GUILayout.ExpandWidth(true));
+        _assetSearch = GUILayout.TextField(_assetSearch, _inputStyle!, GUILayout.Width(350), GUILayout.Height(32));
+        GUILayout.Space(10);
         GUILayout.Label(_assetLibraryItems.Count + " in library", _mutedStyle!);
         GUILayout.EndHorizontal();
+        GUILayout.Space(12);
         var assets = _assetLibraryItems.Where(asset => (_assetTypeFilter == 2 || (_assetTypeFilter == 0) == asset.Kind.StartsWith("Texture", StringComparison.Ordinal)) && (_assetCategoryFilter == 0 || asset.Category == categoryOptions[_assetCategoryFilter]) && (string.IsNullOrWhiteSpace(_assetSearch) || asset.Name.IndexOf(_assetSearch, StringComparison.OrdinalIgnoreCase) >= 0 || asset.Category.IndexOf(_assetSearch, StringComparison.OrdinalIgnoreCase) >= 0))
             .ToArray();
         var pendingAsset = _assetLibraryItems.FirstOrDefault(asset => asset.Id == _pendingAssetRemoveId);
@@ -138,7 +145,7 @@ public sealed partial class WorldCreatorWindow
             );
             GUILayout.EndVertical();
             var inProject = _project!.ProjectAssets.Any(item => item.Id == asset.Id);
-            if (NativeButton(inProject ? "Added" : "Add to project", _buttonStyle!, GUILayout.Width(130)) && !inProject)
+            if (NativeButton(inProject ? "Added" : "Add to project", _buttonStyle!, GUILayout.Width(190), GUILayout.Height(32)) && !inProject)
             {
                 try
                 {
@@ -151,13 +158,33 @@ public sealed partial class WorldCreatorWindow
                 }
             }
 
-            if (NativeButton("Remove from library", _buttonStyle!, GUILayout.Width(160)))
+            GUILayout.Space(10);
+            if (NativeButton("Remove from library", _buttonStyle!, GUILayout.Width(190), GUILayout.Height(32)))
                 _pendingAssetRemoveId = asset.Id;
             GUILayout.EndHorizontal();
         }
 
         GUILayout.EndVertical();
         return false;
+    }
+
+    /// <summary>Uses equal-sized filter buttons with room between rows and columns.</summary>
+    private int DrawAssetFilterButtons(int selected, string[] labels)
+    {
+        for (var start = 0; start < labels.Length; start += 3)
+        {
+            if (start > 0) GUILayout.Space(10);
+            GUILayout.BeginHorizontal();
+            for (var i = start; i < Math.Min(start + 3, labels.Length); i++)
+            {
+                if (i > start) GUILayout.Space(10);
+                if (NativeButton(labels[i], i == selected ? _primaryButtonStyle! : _buttonStyle!, GUILayout.Width(190), GUILayout.Height(32)))
+                    selected = i;
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+        }
+        return selected;
     }
 
     /// <summary>Lists the assets attached to this world and lets the player remove those references.</summary>

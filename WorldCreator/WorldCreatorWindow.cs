@@ -84,7 +84,6 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
     private bool _discardConfirmed;
     private string _id = "WC_MyWorld";
     private string _name = "My World";
-    private string _projectOrigin = "";
     private string _advancedFilter = "";
     private string _status = "Start from a blank world, apply a preset if desired, then create a new mod.";
     private WorldProject? _project;

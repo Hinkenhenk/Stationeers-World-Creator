@@ -41,11 +41,10 @@ public sealed partial class WorldCreatorWindow
     }
 
     /// <summary>Edits a numeric curve coordinate and enforces any supplied bounds.</summary>
-    private void DrawCurveNumber(WorldCreator.WorldProject.Field field, string label, float width, double? minimum = null, double? maximum = null)
+    private void DrawCurveNumber(WorldCreator.WorldProject.Field field, float width, double? minimum = null, double? maximum = null)
     {
         GUILayout.BeginVertical(GUILayout.Width(width));
-        HelpLabel(new GUIContent(label + "  ⓘ", field.Tooltip), _mutedStyle!);
-        var rect = GUILayoutUtility.GetRect(0, 28, GUILayout.ExpandWidth(true), GUILayout.Height(28));
+        var rect = GUILayoutUtility.GetRect(0, 32, GUILayout.ExpandWidth(true), GUILayout.Height(32));
         RegisterHoverTooltip(rect, field.Tooltip);
         var value = MaskNumericInput(GUI.TextField(rect, field.Value, _inputStyle!));
         if (value == field.Value)
@@ -61,11 +60,10 @@ public sealed partial class WorldCreatorWindow
     }
 
     /// <summary>Keeps an editable temperature draft synchronized with its stored kelvin value.</summary>
-    private void DrawTemperatureValue(WorldProject.Field field, string label, float width)
+    private void DrawTemperatureValue(WorldProject.Field field, float width)
     {
         GUILayout.BeginVertical(GUILayout.Width(width));
-        HelpLabel(new GUIContent(label + "  ⓘ", field.Tooltip + " Stored in world XML as kelvin."), _mutedStyle!);
-        var rect = GUILayoutUtility.GetRect(0, 28, GUILayout.ExpandWidth(true), GUILayout.Height(28));
+        var rect = GUILayoutUtility.GetRect(0, 32, GUILayout.ExpandWidth(true), GUILayout.Height(32));
         RegisterHoverTooltip(rect, field.Tooltip + " Stored in world XML as kelvin.");
         var kelvin = double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var stored) ? stored : 273.15;
         var value = ConvertTemperatureFromKelvin(kelvin, _temperatureUnit).ToString("0.##", CultureInfo.InvariantCulture);
@@ -155,22 +153,26 @@ public sealed partial class WorldCreatorWindow
         var keyCount = curve.Count();
         foreach (var key in curve.OrderBy(k => k.Index))
         {
-            GUILayout.BeginHorizontal(_rowStyle!);
+            GUILayout.BeginVertical(_rowStyle!);
+            GUILayout.BeginHorizontal();
+            HelpLabel(new GUIContent(timeLabel + "  ⓘ", key.Time.Tooltip), _mutedStyle!, GUILayout.Width(170));
+            GUILayout.Space(16);
+            HelpLabel(new GUIContent(valueLabel + "  ⓘ", key.Value.Tooltip), _mutedStyle!, GUILayout.Width(170));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
             if (isBaseTemperature)
-                DrawCurveNumber(key.Time, timeLabel, 170, 0, 180);
+                DrawCurveNumber(key.Time, 170, 0, 180);
             else
-                DrawCurveNumber(key.Time, timeLabel, 170, isSolar ? 0 : (double?)null, isSolar ? 100 : (double?)null);
+                DrawCurveNumber(key.Time, 170, isSolar ? 0 : (double?)null, isSolar ? 100 : (double?)null);
             GUILayout.Space(16);
             if (isBaseTemperature)
-                DrawTemperatureValue(key.Value, valueLabel, 170);
+                DrawTemperatureValue(key.Value, 170);
             else
-                DrawCurveNumber(key.Value, valueLabel, 170);
+                DrawCurveNumber(key.Value, 170);
             GUILayout.Space(16);
-            GUILayout.BeginVertical();
-            GUILayout.FlexibleSpace();
-            var remove = keyCount > 1 && NativeButton("Remove", _buttonStyle!, GUILayout.Width(105), GUILayout.Height(32));
-            GUILayout.FlexibleSpace();
-            GUILayout.EndVertical();
+            var removeRect = GUILayoutUtility.GetRect(105, 32, GUILayout.Width(105), GUILayout.Height(32));
+            var remove = keyCount > 1 && NativeButtonAt(removeRect, "Remove", _buttonStyle!);
             GUILayout.FlexibleSpace();
             if (remove)
             {
@@ -186,10 +188,12 @@ public sealed partial class WorldCreatorWindow
 
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
+                GUILayout.EndVertical();
                 return true;
             }
 
             GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
             GUILayout.Space(10);
         }
 
