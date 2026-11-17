@@ -82,6 +82,7 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginHorizontal();
         GUILayout.Label("Weather ID", _mutedStyle!, GUILayout.Width(72));
         _newWeatherId = GUILayout.TextField(_newWeatherId, _inputStyle!, GUILayout.MinWidth(180), GUILayout.ExpandWidth(true));
+        GUILayout.Space(10);
         GUILayout.Label("Display name", _mutedStyle!, GUILayout.Width(88));
         _newWeatherName = GUILayout.TextField(_newWeatherName, _inputStyle!, GUILayout.MinWidth(150), GUILayout.ExpandWidth(true));
         GUILayout.EndHorizontal();
@@ -344,7 +345,10 @@ public sealed partial class WorldCreatorWindow
             GUILayout.BeginHorizontal();
             DrawWeatherValue(fields[i], eventId, block);
             if (i + 1 < fields.Count)
+            {
+                GUILayout.Space(10);
                 DrawWeatherValue(fields[i + 1], eventId, block);
+            }
             GUILayout.EndHorizontal();
         }
 
@@ -366,7 +370,10 @@ public sealed partial class WorldCreatorWindow
             GUILayout.BeginHorizontal();
             DrawWeatherValue(sectionFields[i], eventId, visualBlock);
             if (i + 1 < sectionFields.Length)
+            {
+                GUILayout.Space(10);
                 DrawWeatherValue(sectionFields[i + 1], eventId, visualBlock);
+            }
             GUILayout.EndHorizontal();
         }
     }

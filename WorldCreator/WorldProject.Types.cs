@@ -183,16 +183,18 @@ internal sealed partial class WorldProject
         internal string Value;
         internal readonly bool IsBoolean;
         internal readonly bool IsNumeric;
+        internal readonly XObject? Target;
         private readonly bool _boolean;
         private readonly Action<string> _write;
         /// <summary>Binds a labeled draft value, validation rules and writer to its original XML location.</summary>
-        internal Field(string label, string value, Action<string> write, bool numeric = true, bool boolean = false, string? tooltip = null)
+        internal Field(string label, string value, Action<string> write, bool numeric = true, bool boolean = false, string? tooltip = null, XObject? target = null)
         {
             Label = label;
             Tooltip = tooltip ?? DescribeField(label);
             Original = value;
             Value = value;
             _write = write;
+            Target = target;
             IsNumeric = numeric;
             _boolean = boolean;
             IsBoolean = boolean;

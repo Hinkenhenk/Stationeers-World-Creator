@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -15,6 +16,9 @@ public sealed partial class WorldCreatorWindow
     private Rect _nativePopupRect;
     private int _nativePopupSelectedIndex;
     private int _nativePopupCurrentSelected;
+    private const float PopupRowHeight = 32f;
+    private const float PopupRowSpacing = 10f;
+    private readonly Dictionary<string, Rect> _dropdownButtonRects = new Dictionary<string, Rect>();
     /// <summary>Draws the installed game's Back arrow at the same size as the New Game page.</summary>
     private bool NativeBackButton()
     {
@@ -68,11 +72,9 @@ public sealed partial class WorldCreatorWindow
                 _nativePopupOpen = key;
                 _nativePopupOptions = labels;
                 _nativePopupCurrentSelected = selected;
-                _nativePopupScrollOffset = selected * 32f;
-                var buttonRect = GUILayoutUtility.GetLastRect();
-                var mouse = Input.mousePosition;
-                var width = Mathf.Max(buttonRect.width, 190f);
-                _nativePopupAnchor = new Rect(mouse.x - width * 0.5f, Screen.height - mouse.y + buttonRect.height * 0.5f, width, buttonRect.height);
+                _nativePopupScrollOffset = Mathf.Max(0, selected) * (PopupRowHeight + PopupRowSpacing);
+                if (_dropdownButtonRects.TryGetValue(key, out var buttonRect))
+                    _nativePopupAnchor = buttonRect;
             }
         }
         else if (_nativePopupOpen == key)
@@ -81,9 +83,18 @@ public sealed partial class WorldCreatorWindow
             _nativePopupCurrentSelected = selected;
         }
 
+        // GetLastRect is reliable during Repaint; cache the trigger after scroll/group transforms.
+        if (Event.current.type == EventType.Repaint)
+        {
+            var rect = GUILayoutUtility.GetLastRect();
+            var screenRect = new Rect(GUIUtility.GUIToScreenPoint(rect.position), rect.size);
+            _dropdownButtonRects[key] = screenRect;
+            if (_nativePopupOpen == key) _nativePopupAnchor = screenRect;
+        }
+
         if (_queuedNativePopupSelection == key && Event.current.type == EventType.Layout)
         {
-            selected = _nativePopupSelectedIndex;
+            selected = Mathf.Clamp(_nativePopupSelectedIndex, 0, labels.Length - 1);
             _queuedNativePopupSelection = null;
             CloseNativePopup();
         }
@@ -96,13 +107,11 @@ public sealed partial class WorldCreatorWindow
     {
         if (_nativePopupOpen != key || labels.Length == 0)
             return;
-        const float rowHeight = 32f;
-        var visibleRows = Mathf.Max(1, Mathf.FloorToInt((Screen.height * .55f - 16f) / rowHeight));
-        var count = Math.Min(labels.Length, visibleRows);
-        var height = count * rowHeight + 16f;
+        var contentHeight = labels.Length * (PopupRowHeight + PopupRowSpacing) - PopupRowSpacing;
+        var height = Mathf.Min(contentHeight + 24f, Screen.height * .55f);
         var widestLabel = labels.Max(option => _templateStyle!.CalcSize(new GUIContent(option)).x);
         var width = Mathf.Clamp(Mathf.Max(_nativePopupAnchor.width, widestLabel + 52f), 190f, Mathf.Max(190f, Screen.width - 16f));
-        var x = Mathf.Clamp(_nativePopupAnchor.center.x - width * 0.5f, 8f, Screen.width - width - 8f);
+        var x = Mathf.Clamp(_nativePopupAnchor.x, 8f, Screen.width - width - 8f);
         var y = _nativePopupAnchor.yMax + 4f;
         if (y + height > Screen.height - 8f)
             y = _nativePopupAnchor.yMin - height - 4f;
@@ -110,11 +119,15 @@ public sealed partial class WorldCreatorWindow
         _nativePopupRect = new Rect(x, y, width, height);
         GUI.Window(904523, _nativePopupRect, _ =>
         {
-            var scroll = GUILayout.BeginScrollView(new Vector2(0f, _nativePopupScrollOffset), false, true, GUILayout.Height(height - 12f));
+            var viewport = new Rect(12f, 12f, width - 24f, height - 24f);
+            var contentWidth = viewport.width - (contentHeight > viewport.height ? 22f : 0f);
+            var scroll = GUI.BeginScrollView(viewport, new Vector2(0f, _nativePopupScrollOffset),
+                new Rect(0f, 0f, contentWidth, contentHeight), false, false);
             _nativePopupScrollOffset = scroll.y;
             for (var optionIndex = 0; optionIndex < labels.Length; optionIndex++)
             {
-                if (GUILayout.Button(labels[optionIndex], optionIndex == selected ? _templateActiveStyle! : _templateStyle!, GUILayout.Height(rowHeight)))
+                var row = new Rect(0f, optionIndex * (PopupRowHeight + PopupRowSpacing), contentWidth, PopupRowHeight);
+                if (NativeButtonAt(row, labels[optionIndex], optionIndex == selected ? _templateActiveStyle! : _templateStyle!))
                 {
                     _nativePopupSelectedIndex = optionIndex;
                     _queuedNativePopupSelection = key;
@@ -122,7 +135,7 @@ public sealed partial class WorldCreatorWindow
                 }
             }
 
-            GUILayout.EndScrollView();
+            GUI.EndScrollView();
         }, GUIContent.none, _cardStyle!);
     }
 
@@ -130,6 +143,19 @@ public sealed partial class WorldCreatorWindow
     private void CloseNativePopup()
     {
         _nativePopupOpen = null;
+    }
+
+    /// <summary>Closes the frontmost editor overlay without hiding the underlying draft.</summary>
+    internal bool TryCloseOverlay()
+    {
+        if (_nativePopupOpen != null)
+        {
+            CloseNativePopup();
+            return true;
+        }
+        if (!_helpOpen) return false;
+        _pendingHelpClose = true;
+        return true;
     }
 
     /// <summary>Asks for confirmation before replacing the current draft with an original-world preset.</summary>

@@ -43,7 +43,7 @@ Report problems in [Issues](https://github.com/Hinkenhenk/Stationeers-World-Crea
 
 Paint region masks with a brush or one pixel at a time. Use the mouse wheel over the map to zoom, and hold the wheel button to pan. The pipette selects a region from its mask colour; Ctrl+Z undoes recent map changes.
 
-Playable boundaries can be polygons, squares or circles. Move the area, resize it, or add polygon corners, then choose **Apply playable area**. Region names, descriptions and RGB colours are edited in the palette; the editor keeps the XML references connected for you.
+Select the playable-bounds mask to draw a polygon, square or circle. Move the area, resize it, or add polygon corners, then choose **Apply area**. Region names, descriptions and RGB colours are edited in the palette; the editor keeps the XML references connected for you. Adding, renaming or deleting a region also updates its linked data in the exported world.
 
 ## Code layout
 

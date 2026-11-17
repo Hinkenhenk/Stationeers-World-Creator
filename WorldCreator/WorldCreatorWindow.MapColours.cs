@@ -13,7 +13,12 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Edits a complete RGB triplet and recolours this region without breaking painted pixels.</summary>
     private void DrawMapRgbField(WorldProject.MapLayer layer, WorldProject.MapLayer.Region region)
     {
+        GUILayout.BeginHorizontal();
         GUILayout.Label("RGB", _mutedStyle!);
+        GUILayout.FlexibleSpace();
+        if (NativeButton("Delete", _buttonStyle!, GUILayout.Width(80), GUILayout.Height(28)))
+            ConfirmRemoveMapRegion(layer, region);
+        GUILayout.EndHorizontal();
         var key = layer.Id + "/" + region.Id;
         var text = _mapRgbDrafts.TryGetValue(key, out var draft) ? draft : region.R + "," + region.G + "," + region.B;
         var next = GUILayout.TextField(text, _inputStyle!, GUILayout.Height(32));

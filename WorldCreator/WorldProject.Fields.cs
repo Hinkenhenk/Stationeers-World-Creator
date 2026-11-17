@@ -239,7 +239,7 @@ internal sealed partial class WorldProject
                 continue;
             var numeric = double.TryParse(current.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
             var boolean = bool.TryParse(current.Value, out _);
-            fields.Add(new Field(label + "/@" + current.Name.LocalName, current.Value, value => current.Value = value, numeric, boolean));
+            fields.Add(new Field(label + "/@" + current.Name.LocalName, current.Value, value => current.Value = value, numeric, boolean, target: current));
         }
 
         var nil = element.Attributes().FirstOrDefault(a => a.Name.LocalName == "nil" && a.Name.NamespaceName == "http://www.w3.org/2001/XMLSchema-instance");
@@ -250,7 +250,7 @@ internal sealed partial class WorldProject
             {
                 current.Value = value;
                 current.SetAttributeValue(nil.Name, null);
-            }, numeric: false, boolean: true));
+            }, numeric: false, boolean: true, target: current));
         }
 
         if (!element.HasElements && !string.IsNullOrWhiteSpace(element.Value))
@@ -258,7 +258,7 @@ internal sealed partial class WorldProject
             var current = element;
             var numeric = double.TryParse(current.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
             var boolean = bool.TryParse(current.Value, out _);
-            fields.Add(new Field(label, current.Value, value => current.Value = value, numeric, boolean));
+            fields.Add(new Field(label, current.Value, value => current.Value = value, numeric, boolean, target: current));
         }
 
         foreach (var child in element.Elements())

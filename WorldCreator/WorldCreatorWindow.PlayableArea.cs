@@ -15,29 +15,24 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Edits the active shape without changing the world until Apply is pressed.</summary>
     private void DrawPlayableAreaControls()
     {
-        GUILayout.Label("PLAYABLE AREA", _sectionStyle!);
-        _editPlayableArea = GUILayout.Toggle(_editPlayableArea, "Edit playable area on map");
-        if (!_editPlayableArea)
-        {
-            GUILayout.Label("Create a polygon, square or circle. Existing boundaries stay unchanged until you apply the area.", _mutedStyle!);
-            return;
-        }
         _paintMode = false;
         GUILayout.BeginHorizontal();
+        GUILayout.Label("Shape", _mutedStyle!, GUILayout.Width(50));
         _playableAreaShape.Kind = (PlayableAreaShape.ShapeKind)NativeDropdown("playable-shape", (int)_playableAreaShape.Kind,
-            new[] { "Polygon", "Square", "Circle" }, _buttonStyle!, GUILayout.Width(220), GUILayout.Height(32));
+            new[] { "Polygon", "Square", "Circle" }, _buttonStyle!, GUILayout.Width(180), GUILayout.Height(32));
+        GUILayout.Space(10);
         if (NativeButton("Centre area", _buttonStyle!, GUILayout.Width(150), GUILayout.Height(32)))
             _playableAreaShape.MoveBy(.5 - _playableAreaShape.Centre.X, .5 - _playableAreaShape.Centre.Y);
+        GUILayout.Space(10);
         if (_playableAreaShape.Kind == PlayableAreaShape.ShapeKind.Polygon)
             DrawPolygonCornerControls();
+        GUILayout.Space(10);
+        if (NativeButton("Apply area", _buttonStyle!, GUILayout.Width(140), GUILayout.Height(32)))
+            ApplyPlayableArea();
         GUILayout.EndHorizontal();
         GUILayout.Label(_playableAreaShape.Kind == PlayableAreaShape.ShapeKind.Polygon
-            ? "Drag corners independently. Click an edge to add a corner, or use Add corner. Drag inside the area to move it. Edges cannot cross."
-            : "Drag inside the area to move it. Drag a square corner or the circle's edge to resize it.", _mutedStyle!);
-        GUILayout.Label("Green is playable; the warning band and out-of-bounds mask are generated automatically. Shapes stay inside the map. Applying replaces this draft's playable-area rules, without changing terrain geometry.", _mutedStyle!);
-        if (NativeButton("Apply playable area", _buttonStyle!, GUILayout.Width(220), GUILayout.Height(32)))
-            ApplyPlayableArea();
-        GUILayout.Label("Changes are a preview until you press Apply playable area. Each shape keeps its own preview while you switch between them.", _mutedStyle!);
+            ? "Drag corners to reshape; click an edge to add a corner. Drag inside to move. Apply area commits the boundary."
+            : "Drag inside to move; drag the edge to resize. Apply area commits the boundary.", _mutedStyle!);
     }
 
     /// <summary>Adds a handle after the selected corner and allows correction without dropping below three vertices.</summary>
@@ -54,6 +49,7 @@ public sealed partial class WorldCreatorWindow
             if (_playableAreaShape.TryAddCorner(edge, new PlayableAreaShape.Point((a.X + b.X) / 2, (a.Y + b.Y) / 2)))
                 _selectedBoundaryCorner = edge + 1;
         }
+        GUILayout.Space(10);
         GUI.enabled = enabled && points.Count > 3 && _selectedBoundaryCorner >= 0;
         if (NativeButton("Remove corner", _buttonStyle!, GUILayout.Width(150), GUILayout.Height(32)) && _playableAreaShape.TryRemoveCorner(_selectedBoundaryCorner))
             _selectedBoundaryCorner = -1;

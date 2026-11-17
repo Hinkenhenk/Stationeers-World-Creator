@@ -93,10 +93,6 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
     {
         if (_confirmationBackdrop != null && !Assets.Scripts.UI.PromptPanel.Instance.IsActive)
             ClearConfirmationBackdrop();
-        if (_helpOpen && Input.GetKeyDown(KeyCode.Escape))
-            _pendingHelpClose = true;
-        if (_nativePopupOpen != null && Input.GetKeyDown(KeyCode.Escape))
-            CloseNativePopup();
         if (!_orbitSimulationPlaying || _screen != 3 || _page != 3 || _project == null)
             return;
         var delta = Time.unscaledDeltaTime;
@@ -166,6 +162,8 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
             {
                 _page = _pendingPage;
                 _pendingPage = -1;
+                _scroll = Vector2.zero;
+                CloseNativePopup();
             }
 
             ApplyHelpNavigation();

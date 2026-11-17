@@ -35,4 +35,7 @@ internal static class EditorWindow
 
     /// <summary>Uses the native shell for entry screens and the larger workspace for editing.</summary>
     internal static Rect PreparePage(int screen) => _page!.Prepare(screen);
+
+    /// <summary>Lets a creator overlay consume Cancel before the native menu stack moves backwards.</summary>
+    internal static bool TryCloseOverlay() => _page != null && _page.IsVisible && _page.TryCloseOverlay();
 }

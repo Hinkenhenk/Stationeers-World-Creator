@@ -57,7 +57,7 @@ public sealed partial class WorldCreatorWindow
         if (NativeButton("+", _buttonStyle!, GUILayout.Width(38), GUILayout.Height(32))) SetMapZoom(_mapZoom * 2, Vector2.zero);
         if (NativeButton("Reset map view", _buttonStyle!, GUILayout.Width(170), GUILayout.Height(32))) { _mapZoom = 1; _mapPan = Vector2.zero; }
         GUILayout.EndHorizontal();
-        GUILayout.Label("Mouse wheel over the map: zoom. Hold the wheel button and drag to pan. Masks stay sharp so you can paint individual pixels.", _mutedStyle!);
+        GUILayout.Label("Wheel: zoom · Hold wheel and drag: pan", _mutedStyle!);
     }
 
     /// <summary>Clips the zoomed map to a fixed square viewport and captures only zoom and pan gestures.</summary>

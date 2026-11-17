@@ -381,6 +381,17 @@ public sealed partial class WorldCreatorWindow
         var delta = to - from;
         if (delta.sqrMagnitude < 0.01f)
             return;
+        if (Mathf.Abs(delta.x) < .01f || Mathf.Abs(delta.y) < .01f)
+        {
+            var previous = GUI.color;
+            GUI.color = color;
+            // Avoid rotating axis lines: rotation also transforms Unity's parent scroll clipping.
+            GUI.DrawTexture(new Rect(Mathf.Min(from.x, to.x) - thickness / 2f,
+                Mathf.Min(from.y, to.y) - thickness / 2f,
+                Mathf.Max(thickness, Mathf.Abs(delta.x)), Mathf.Max(thickness, Mathf.Abs(delta.y))), Texture2D.whiteTexture);
+            GUI.color = previous;
+            return;
+        }
         var previousMatrix = GUI.matrix;
         var previousColor = GUI.color;
         try

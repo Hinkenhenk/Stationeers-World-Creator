@@ -26,7 +26,6 @@ internal sealed partial class WorldProject
     {
         if (elementName != "Name" && elementName != "Description") throw new ArgumentException("Select a POI name or description.", nameof(elementName));
         if (GetPoiText(poi, elementName) == text) return;
-        if (GetPoiText(poi, elementName) == text) return;
         var definition = FindPoi(poi);
         var element = definition.Element(elementName);
         if (element == null) { element = new XElement(elementName); definition.Add(element); }

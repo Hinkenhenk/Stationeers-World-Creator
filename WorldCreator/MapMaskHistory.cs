@@ -30,4 +30,6 @@ internal sealed class MapMaskHistory
     internal void Pop() => _entries.RemoveAt(_entries.Count - 1);
     /// <summary>Releases all history when a different world is loaded.</summary>
     internal void Clear() => _entries.Clear();
+    /// <summary>Drops snapshots whose palette definitions no longer exist after a region deletion.</summary>
+    internal void RemoveLayer(string layerId) => _entries.RemoveAll(entry => entry.LayerId == layerId);
 }

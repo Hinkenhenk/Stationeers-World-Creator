@@ -13,7 +13,7 @@ internal sealed partial class WorldProject
     internal bool IsPlayableAreaLayer(string layerId)
     {
         var layer = MapLayers.FirstOrDefault(item => item.Id == layerId);
-        return layer != null && (layer.TexturePath.Replace('\\', '/').EndsWith("/4KMissionArea.png", StringComparison.OrdinalIgnoreCase)
+        return layer != null && (layer.Id == _playableAreaLayerId || layer.TexturePath.Replace('\\', '/').EndsWith("/4KMissionArea.png", StringComparison.OrdinalIgnoreCase)
             || _world.Elements("PlayableArea").Descendants("Region").Any(reference => layer.Regions.Any(region => region.Id == (string?)reference.Attribute("Id"))));
     }
 
@@ -28,6 +28,11 @@ internal sealed partial class WorldProject
         if (_playableAreaLayerId == null)
             CreatePlayableAreaLayer();
         var id = _playableAreaLayerId!;
+        var layer = MapLayers.Single(item => item.Id == id);
+        var definition = _world.Elements("RegionSet").Single(element => (string?)element.Attribute("Id") == id);
+        foreach (var colour in new[] { ("Valid", 0, 255, 0), ("Warning", 0, 0, 255), ("Invalid", 255, 0, 0) })
+            if (!layer.Regions.Any(region => region.Id == id + colour.Item1))
+                AddPlayableRegion(definition, layer, colour.Item1, colour.Item2, colour.Item3, colour.Item4);
         _world.Elements("PlayableArea").Remove();
         _world.Add(new XElement("PlayableArea", new XAttribute("Id", id + "WarningArea"), new XAttribute("Rule", "Warning"),
             new XElement("Region", new XAttribute("Id", id + "Warning"))));

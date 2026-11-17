@@ -84,6 +84,7 @@ internal sealed partial class WorldProject
         MapLayers.Add(layer);
         _mapRegionNames.Add(nameKey, "World");
         SetMapLayerTexture(id, initialPng);
+        RefreshMapFields();
         return id;
     }
 
@@ -123,6 +124,7 @@ internal sealed partial class WorldProject
         layer.Regions.Add(new MapLayer.Region(regionId, color.Item1, color.Item2, color.Item3, nameKey));
         _mapRegionNames.Add(nameKey, "Region " + (layer.Regions.Count - 1).ToString(CultureInfo.InvariantCulture));
         _structureChanged = true;
+        RefreshMapFields();
         return regionId;
     }
 
@@ -199,13 +201,13 @@ internal sealed partial class WorldProject
     /// <summary>Rebuilds XML controls after replacing boundary rules while retaining unrelated pending edits.</summary>
     private void RefreshMapFields()
     {
-        var pending = AdvancedFields.Where(field => !field.Label.Contains("/PlayableArea"))
-            .ToDictionary(field => field.Label, field => field.Value, StringComparer.Ordinal);
+        var pending = AdvancedFields.Where(field => field.Target != null && field.Value != field.Original)
+            .ToDictionary(field => field.Target!, field => field.Value);
         AdvancedFields.Clear();
         MapFields.Clear();
         AddAllFields(AdvancedFields, _world, "World");
         foreach (var field in AdvancedFields)
-            if (pending.TryGetValue(field.Label, out var value) || pending.TryGetValue(field.Label.Replace("/RegionSet #1/", "/RegionSet/"), out value))
+            if (field.Target != null && pending.TryGetValue(field.Target, out var value))
                 field.Value = value;
         MapFields.AddRange(AdvancedFields.Where(f => f.Label.IndexOf("/RegionSet", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PointOfInterest", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PlayableArea", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/GeographicRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinablesRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/Minables/", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinables/", StringComparison.Ordinal) >= 0));
     }

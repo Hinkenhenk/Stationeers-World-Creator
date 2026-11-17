@@ -15,6 +15,9 @@ internal sealed class WorldCreatorMenuPage : UI.MainMenuPage
     private WorldCreatorWindow _editor = null!;
     private readonly Vector3[] _corners = new Vector3[4];
 
+    /// <summary>Routes native Cancel to an open editor dropdown or help page.</summary>
+    internal bool TryCloseOverlay() => _editor.TryCloseOverlay();
+
     /// <summary>Builds an inactive native page before registration so failed initialization cannot obscure the main menu.</summary>
     internal static WorldCreatorMenuPage Create(NewWorldMenu source)
     {
