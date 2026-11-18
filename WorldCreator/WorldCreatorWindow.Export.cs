@@ -58,7 +58,7 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Requests explicit confirmation before replacing a local mod and explains the retained backup.</summary>
     private void ConfirmUpdateWorld()
     {
-        ConfirmEditorAction("Update world mod?", "Replace this local world's exported settings?\n\nThe previous mod will be backed up outside the mods folder. Saved play sessions are unchanged.", "Update", () => Export(updateExisting: true));
+        ConfirmEditorAction("Update world mod?", "Update " + _name + " (" + _id + ")?\n\nReplaces this local mod's exported settings and keeps a backup. Saved play sessions are unchanged.", "Update", () => Export(updateExisting: true));
     }
 
     /// <summary>Locates a validation error in the collection that supplies its page, including imported equipment.</summary>

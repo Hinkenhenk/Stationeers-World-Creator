@@ -294,7 +294,9 @@ internal sealed partial class WorldProject
             {
                 var id = (string? )spawn.Attribute("Id");
                 var nameKey = (string? )spawn.Element("DynamicThing")?.Element("Name")?.Attribute("Key");
-                if (id != null && nameKey != null && translations.TryGetValue(nameKey, out var translatedName))
+                if (id != null && translations.TryGetValue(id + "Name", out var exportedName))
+                    _spawnNames[id] = exportedName;
+                else if (id != null && nameKey != null && translations.TryGetValue(nameKey, out var translatedName))
                     _spawnNames[id] = translatedName;
             }
             foreach (var nameElement in _customSpawnDefinitions.SelectMany(spawn => spawn.Descendants("Name")))
