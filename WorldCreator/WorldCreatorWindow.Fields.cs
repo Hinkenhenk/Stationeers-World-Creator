@@ -38,9 +38,12 @@ public sealed partial class WorldCreatorWindow
     private void DrawGroupedField(WorldProject.Field field, bool? includeContext = null)
     {
         GUILayout.BeginVertical(GUILayout.MinWidth(0), GUILayout.ExpandWidth(true));
+        var marked = !_exportIssueIsWarning && field == _exportIssueField && field.Value == _exportIssueValue;
+        var previousColor = GUI.backgroundColor;
         var fieldLabel = new GUIContent(ReadableFieldLabel(field.Label, includeContext ?? (_page == 6 || _page == 7)) + "  ⓘ", field.Tooltip);
-        GUILayout.Label(fieldLabel, _mutedStyle!);
-        RegisterHoverTooltip(GUILayoutUtility.GetLastRect(), field.Tooltip);
+        var labelRect = DrawExportName(fieldLabel, marked, marked ? _sectionStyle! : _mutedStyle!);
+        if (marked) GUI.backgroundColor = new Color(1, 0.35f, 0.35f);
+        RegisterHoverTooltip(labelRect, field.Tooltip);
         if (field.IsBoolean)
             field.Value = GUILayout.Toggle(bool.TryParse(field.Value, out var current) && current, "Enabled") ? "true" : "false";
         else
@@ -50,6 +53,7 @@ public sealed partial class WorldCreatorWindow
         }
 
         GUILayout.Space(10);
+        GUI.backgroundColor = previousColor;
         GUILayout.EndVertical();
     }
 

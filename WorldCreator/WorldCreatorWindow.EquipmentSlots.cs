@@ -14,11 +14,10 @@ public sealed partial class WorldCreatorWindow
     private string _equipmentNameDraft = "";
     private bool _equipmentItemSearch;
 
-    /// <summary>Selects one physical container or player kit and exposes its actual native slots.</summary>
+    /// <summary>Inspects the selected visible object, its location, tank contents and actual native slots.</summary>
     private void DrawEquipmentContainers(string conditionId)
     {
-        var containers = _project!.GetEquipmentEntries(conditionId)
-            .Where(row => EquipmentParent(row.Element, row.Event)?.Slots?.Count > 0).ToArray();
+        var containers = _equipmentViewByElement.Values.ToArray();
         if (containers.Length == 0)
         {
             GUILayout.Label("No containers yet. Add a supply crate or lander, or inspect the equipment overview.", _mutedStyle!);
@@ -27,26 +26,40 @@ public sealed partial class WorldCreatorWindow
         var index = Array.FindIndex(containers, row => row.Element == _equipmentContainer && _equipmentProfile == conditionId);
         if (index < 0)
         {
-            _pendingEquipmentChange ??= () => SelectEquipmentContainer(conditionId, containers[0].Element);
+            var initial = containers.FirstOrDefault(node => EquipmentParent(node.Element, node.Event) is Lander) ?? containers[0];
+            _pendingEquipmentChange ??= () => SelectEquipmentContainer(conditionId, initial.Element);
             return;
         }
-        GUILayout.Label("Container / player kit", _mutedStyle!);
-        var labels = containers.Select((row, i) => (i + 1) + ". " + row.Event + " · " +
-            (row.Element.Name == "Spawn" ? row.Label : EquipmentDisplayName(row.Element))).ToArray();
-        var next = NativeDropdown("equipment-container-" + conditionId, index, labels, _buttonStyle!, GUILayout.Height(32));
-        if (next != index)
-            _pendingEquipmentChange = () => SelectEquipmentContainer(conditionId, containers[next].Element);
         var selected = containers[index];
-        var parent = EquipmentParent(selected.Element, selected.Event)!;
+        DrawEquipmentBreadcrumbs(conditionId, selected);
+        GUILayout.Label(EquipmentViewName(selected), _sectionStyle!);
+        var enabled = GUI.enabled;
+        GUI.enabled = enabled && _project!.CanEditEquipment(conditionId);
         DrawEquipmentContainerActions(conditionId, selected.Element);
+        DrawEquipmentAtmosphere(conditionId, selected.Element);
+        var parent = EquipmentParent(selected.Element, selected.Event);
+        if (parent?.Slots == null || parent.Slots.Count == 0)
+        {
+            if (parent != null && EquipmentPrefabRules.MaximumQuantity(parent) > 1)
+            {
+                GUILayout.BeginHorizontal();
+                DrawEquipmentQuantity(conditionId, selected.Element, parent);
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+            }
+            else if (!EquipmentHasAtmosphere(selected.Element)) GUILayout.Label(parent == null ? "This prefab is unavailable. Existing equipment is preserved; install its source mod to edit its slots." : "This item has no equipment slots.", _mutedStyle!);
+            GUI.enabled = enabled;
+            return;
+        }
         IReadOnlyList<(XElement Item, int Slot)> assignments;
         try
         {
-            assignments = EquipmentPrefabRules.Assign(parent, _project.GetEquipmentContents(selected.Element));
+            assignments = EquipmentPrefabRules.Assign(parent, _project!.GetEquipmentContents(selected.Element));
         }
         catch (Exception error)
         {
             GUILayout.Label(error.Message + " Use the equipment overview to inspect or remove unsupported contents.", _mutedStyle!);
+            GUI.enabled = enabled;
             return;
         }
         GUILayout.Label(assignments.Count + " occupied / " + parent.Slots.Count + " slots · " + parent.DisplayName, _mutedStyle!);
@@ -56,6 +69,7 @@ public sealed partial class WorldCreatorWindow
             if (_equipmentItemSearch && slot == _equipmentSearchSlot)
                 DrawEquipmentItemPicker(conditionId, selected.Element);
         }
+        GUI.enabled = enabled;
     }
 
     /// <summary>Renames or removes the selected occurrence while preserving installed definitions.</summary>
@@ -65,14 +79,14 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginHorizontal();
         if (container.Name != "Spawn")
         {
-            GUILayout.Label("Container name", _mutedStyle!, GUILayout.Width(120));
+            GUILayout.Label("Name", _mutedStyle!, GUILayout.Width(60));
             _equipmentNameDraft = GUILayout.TextField(_equipmentNameDraft, _inputStyle!, GUILayout.MaxWidth(340));
             GUILayout.Space(10);
             if (NativeButton("Rename", _buttonStyle!, GUILayout.Width(110), GUILayout.Height(30)))
                 _pendingEquipmentChange = () => _project!.SetEquipmentName(conditionId, container, _equipmentNameDraft);
         }
         GUILayout.FlexibleSpace();
-        if (NativeButton("Remove container / kit", _buttonStyle!, GUILayout.Width(210), GUILayout.Height(30)))
+        if (NativeButton("Remove selected", _buttonStyle!, GUILayout.Width(160), GUILayout.Height(30)))
             QueueEquipmentRemoval(conditionId, container);
         GUILayout.EndHorizontal();
         GUILayout.Space(10);
@@ -86,7 +100,7 @@ public sealed partial class WorldCreatorWindow
         var item = assignments.FirstOrDefault(entry => entry.Slot == index).Item;
         GUILayout.BeginVertical(_rowStyle!);
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Slot " + (index + 1) + (string.IsNullOrWhiteSpace(slot.StringKey) ? "" : " · " + slot.StringKey), _mutedStyle!, GUILayout.Width(200));
+        GUILayout.Label("Slot " + (index + 1) + (string.IsNullOrWhiteSpace(slot.StringKey) ? "" : " · " + slot.StringKey), _mutedStyle!, GUILayout.Width(160));
         if (item != null)
             DrawOccupiedEquipmentSlot(conditionId, item);
         else
@@ -112,9 +126,9 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Label(EquipmentDisplayName(item), _mutedStyle!, GUILayout.MinWidth(140));
         GUILayout.FlexibleSpace();
         var prefab = EquipmentPrefabRules.Find((string?)item.Attribute("Id") ?? "");
-        if (prefab != null)
+        if (prefab != null && EquipmentPrefabRules.MaximumQuantity(prefab) > 1)
             DrawEquipmentQuantity(conditionId, item, prefab);
-        if (prefab?.Slots?.Count > 0 && NativeButton("Contents", _buttonStyle!, GUILayout.Width(110), GUILayout.Height(32)))
+        if ((prefab?.Slots?.Count > 0 || EquipmentHasAtmosphere(item)) && NativeButton("Contents", _buttonStyle!, GUILayout.Width(110), GUILayout.Height(32)))
             _pendingEquipmentChange = () => SelectEquipmentContainer(conditionId, item);
         GUILayout.Space(10);
         if (NativeButton("Remove", _buttonStyle!, GUILayout.Width(110), GUILayout.Height(32)))
@@ -143,6 +157,7 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Uses native readable names for containers absent from the item catalog while retaining custom labels.</summary>
     private string EquipmentDisplayName(XElement item)
     {
+        if (_equipmentViewByElement.TryGetValue(item, out var visible)) return EquipmentViewName(visible);
         var name = _project!.GetEquipmentName(item);
         var id = (string?)item.Attribute("Id") ?? "";
         return name == id ? EquipmentPrefabRules.Find(id)?.DisplayName ?? name : name;

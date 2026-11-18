@@ -10,11 +10,14 @@ namespace WorldCreator;
 internal sealed partial class WorldProject
 {
     /// <summary>Validates the draft, writes a complete temporary mod and publishes it only after its packaged files pass validation.</summary>
-    internal string Export(string modsDirectory, string id, string displayName)
+    internal string Export(string modsDirectory, string id, string displayName, bool updateExisting = false)
     {
-        if (IsValidWorldId(id) && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
-            throw new IOException("A mod with this ID already exists. Choose a new ID.");
-        var issue = ValidateForExport(modsDirectory, id, displayName).FirstOrDefault(item => item.IsError);
+        if (updateExisting && !CanUpdateExport(modsDirectory, id))
+            throw new IOException("Only the loaded World Creator local mod can be updated. Load it first, or use a different World ID to create a copy.");
+        if (!updateExisting && IsValidWorldId(id) && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
+            throw new IOException("World Project → World ID: a mod with this ID already exists. Use Update world mod for the loaded local mod, or choose a new ID to create a copy.");
+        ExportWarnings.Clear();
+        var issue = ValidateForExport(modsDirectory, id, displayName, updateExisting).FirstOrDefault(item => item.IsError);
         if (issue.IsError)
             throw new InvalidOperationException(issue.Text);
         var target = Path.Combine(modsDirectory, "WorldCreator_" + id);
@@ -27,12 +30,14 @@ internal sealed partial class WorldProject
         var changedOrbit = _orbitBody != null && (_hasImportedOrbitBody || OrbitFields.Any(f => f.Value != f.Original));
         RewriteExportOrbitReferences(worldOutput, id, changedOrbit);
         var data = CreateExportData(worldOutput, id, changedWeather, changedOrbit, weatherCopies);
+        PrepareTextureReplacements(data, id);
         RepairMissingTemplateAssetPaths(worldOutput, id);
         var importedAssets = PrepareImportedAssetPaths(data, id);
         var temporary = Path.Combine(modsDirectory, ".WorldCreator_" + Guid.NewGuid().ToString("N"));
         try
         {
             WriteModMetadata(temporary, id, displayName);
+            if (updateExisting) PreserveExportMetadata(target, temporary, displayName);
             WriteRuntimeLavaMap(worldOutput, temporary, id);
             new XDocument(data).Save(Path.Combine(temporary, "GameData", "world.xml"));
             WriteExportLanguage(temporary, weatherNames);
@@ -44,7 +49,7 @@ internal sealed partial class WorldProject
             WriteTerrainSources(temporary);
             ValidateExport(temporary, id, displayName.Trim(), changedWeather, changedOrbit, weatherNames);
             WriteExportReadme(temporary, id, displayName.Trim(), weatherCopies.Count, changedOrbit, changedMapLayers.Count);
-            Directory.Move(temporary, target);
+            PublishExport(temporary, target, updateExisting);
         }
         catch
         {
@@ -53,6 +58,8 @@ internal sealed partial class WorldProject
             throw;
         }
 
+        _exportDirectory = Path.GetFullPath(target);
+        ExportedWorldId = id;
         return target;
     }
 
@@ -304,6 +311,9 @@ internal sealed partial class WorldProject
     /// <summary>Copies a referenced source directory recursively without replacing files already generated for this package.</summary>
     private static void CopyImportedDirectory(string source, string destination)
     {
+        Directory.CreateDirectory(destination);
+        foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+            Directory.CreateDirectory(Path.Combine(destination, directory.Substring(source.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)));
         foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
             var relative = file.Substring(source.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -317,6 +327,7 @@ internal sealed partial class WorldProject
     /// <summary>Repairs unresolved native-world texture paths using the source world's texture directory.</summary>
     private void RepairMissingTemplateAssetPaths(XElement world, string id)
     {
+        RepairMissingPreview(world);
         foreach (var attribute in world.DescendantsAndSelf().Attributes("Path"))
         {
             var path = attribute.Value.Replace('\\', '/');
@@ -365,6 +376,7 @@ internal sealed partial class WorldProject
         lines.Add("  Custom orbit body: " + (customOrbit ? "yes" : "no"));
         lines.Add("  Reusable project assets: " + ProjectAssets.Count.ToString(CultureInfo.InvariantCulture));
         var warnings = new List<string>();
+        warnings.AddRange(ExportWarnings);
         var knownSpawnIds = new HashSet<string>(
             _startConditionLibrary.Elements("Spawn").Concat(_customSpawnDefinitions).Select(spawn => (string? )spawn.Attribute("Id") ?? ""),
             StringComparer.Ordinal

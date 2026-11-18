@@ -27,6 +27,7 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginHorizontal();
         GUILayout.Space(10f);
         GUILayout.BeginVertical(GUILayout.Width(PageContentWidth), GUILayout.ExpandHeight(true));
+        DrawExportIssue();
         DrawSelectedPageContent();
         GUILayout.EndVertical();
         GUILayout.Space(10f);
@@ -190,16 +191,23 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Space(CardSpacing);
     }
 
-    /// <summary>Shows the XML field count and captures the Advanced search filter.</summary>
+    /// <summary>Filters Advanced cards immediately as the player types a path, field name or current value.</summary>
     private void DrawAdvancedFilterCard()
     {
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("ADVANCED WORLD DATA", _sectionStyle!);
         GUILayout.Label(_project!.AdvancedFields.Count + " editable values from the selected world's complete XML tree. Unknown elements are retained during export; edits to IDs or references can still break their links.");
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Filter path or value", GUILayout.Width(130));
-        _advancedFilter = GUILayout.TextField(_advancedFilter);
+        GUILayout.Label("Search", _mutedStyle!, GUILayout.Width(80));
+        var search = GUILayout.TextField(_advancedFilter, _inputStyle!, GUILayout.Height(32));
+        if (search != _advancedFilter)
+        {
+            _advancedFilter = search;
+            _scroll = Vector2.zero;
+        }
         GUILayout.EndHorizontal();
+        GUILayout.Space(8);
+        GUILayout.Label("Filters cards by their field names, XML paths or current values as you type.", _mutedStyle!);
         GUILayout.EndVertical();
         GUILayout.Space(CardSpacing);
     }
@@ -266,16 +274,18 @@ public sealed partial class WorldCreatorWindow
             weatherFieldsRendered = true;
         }
 
-        if ((_page == 6 || _page == 7) && _advancedFilter.Length > 0)
-            fields = fields.Where(f => f.Label.IndexOf(_advancedFilter, StringComparison.OrdinalIgnoreCase) >= 0 || f.Value.IndexOf(_advancedFilter, StringComparison.OrdinalIgnoreCase) >= 0)
-                .ToList();
+        var search = _advancedFilter.Trim();
+        if (_page == 6 && search.Length > 0)
+            fields = fields.GroupBy(FieldGroupName).Where(card => card.Any(field =>
+                field.Label.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 || field.Value.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0
+                || ReadableFieldLabel(field.Label, true).IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)).SelectMany(card => card).ToList();
         if (_page == 0)
             fields = fields.Where(f => !f.Label.StartsWith("Overview/", StringComparison.Ordinal) && !f.Label.StartsWith("Environment/", StringComparison.Ordinal) && !f.Label.StartsWith("Gravity", StringComparison.Ordinal) && !f.Label.EndsWith(" / Latitude", StringComparison.Ordinal) && !f.Label.EndsWith(" / Longitude", StringComparison.Ordinal))
                 .ToList();
-        if (_page == 6 || _page == 7)
-            GUILayout.Label("Showing " + fields.Count + " fields");
+        if (_page == 6)
+            GUILayout.Label("Showing " + fields.GroupBy(FieldGroupName).Count() + " cards · " + fields.Count + " fields", _mutedStyle!);
         if (fields.Count == 0 && _page < 8 && _page != 3 && _page != 5 && !weatherFieldsRendered)
-            GUILayout.Label("No values are defined for this template in this section.");
+            GUILayout.Label(_page == 6 && search.Length > 0 ? "No cards match this search. Clear or change the search phrase." : "No values are defined for this template in this section.", _mutedStyle!);
         if (!weatherFieldsRendered && fields.Count > 0)
         {
             if (_page == 0 || _page == 4 || _page == 6 || _page == 7)
@@ -347,6 +357,12 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Space(10f);
         GUILayout.BeginHorizontal(_cardStyle!);
         GUILayout.Label(_status, _mutedStyle!, GUILayout.ExpandWidth(true));
+        var mods = ModSearchPaths.LocalMods(Assets.Scripts.Serialization.Settings.CurrentData?.SavePath);
+        if (_project?.CanUpdateExport(mods, _id) == true)
+        {
+            if (NativeButton("Update world mod", _primaryButtonStyle!, GUILayout.Width(180), GUILayout.Height(34))) ConfirmUpdateWorld();
+            GUILayout.Space(10);
+        }
         if (NativeButton("Create world mod", _primaryButtonStyle!, GUILayout.Width(170), GUILayout.Height(34)) && _project != null)
             Export();
         GUILayout.EndHorizontal();

@@ -34,12 +34,14 @@ public sealed partial class WorldCreatorWindow
         catch (Exception error)
         {
             _status = error.Message;
+            SetExportIssue("Starting conditions → Starting Equipment: " + error.Message, null, 8);
         }
     }
 
     /// <summary>Draws Starting Equipment and Equipment Overview as separate sibling cards.</summary>
     private void DrawStartingEquipment(string conditionId)
     {
+        RefreshEquipmentView(conditionId);
         var editable = _project!.CanEditEquipment(conditionId);
         var available = PageContentWidth - _cardStyle!.padding.horizontal;
         var sideBySide = available >= 1400f;
@@ -53,7 +55,7 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Space(CardSpacing);
         GUILayout.BeginVertical(_rowStyle!, GUILayout.Width(sideBySide ? available - editorWidth - CardSpacing : available));
         GUILayout.Label("EQUIPMENT OVERVIEW", _sectionStyle!);
-        GUILayout.Label("All landers, containers and player kits. Contents opens that container in the equipment editor.", _mutedStyle!);
+        GUILayout.Label("Expand containers with +. Click a name to inspect its contents. The highlighted row is your current location.", _mutedStyle!);
         DrawEquipmentTree(conditionId, editable);
         GUILayout.EndVertical();
         if (sideBySide)
@@ -82,51 +84,16 @@ public sealed partial class WorldCreatorWindow
                 _equipmentLanderPicker = true;
                 _equipmentSearch = "";
             };
-        if (editable && !_equipmentLanderPicker)
+        if (!_equipmentLanderPicker)
             DrawEquipmentContainers(conditionId);
         if (_equipmentProfile == conditionId && editable && _equipmentLanderPicker)
             DrawEquipmentLanderPicker(conditionId);
     }
 
-    /// <summary>Keeps every spawn and loose item accessible, including objects without native slots.</summary>
-    private void DrawEquipmentTree(string conditionId, bool editable)
-    {
-        _equipmentScrolls.TryGetValue(conditionId, out var scroll);
-        _equipmentScrolls[conditionId] = GUILayout.BeginScrollView(scroll, false, true, GUIStyle.none, GUI.skin.verticalScrollbar,
-            GUILayout.Height(Mathf.Clamp(_window.height - 420f, 360f, 680f)));
-        if (!editable)
-        {
-            foreach (var line in _project!.GetStartingEquipment(conditionId))
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(Mathf.Min(line.Depth, 10) * 12f);
-                GUILayout.Label(line.Text, _mutedStyle!, GUILayout.MinWidth(0), GUILayout.ExpandWidth(true));
-                GUILayout.EndHorizontal();
-            }
-        }
-        else
-            foreach (var row in _project!.GetEquipmentEntries(conditionId))
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(Mathf.Min(row.Depth, 8) * 12f);
-                GUILayout.Label((row.Depth == 0 ? row.Event + " · " : "") + row.Label, _mutedStyle!, GUILayout.MinWidth(0), GUILayout.ExpandWidth(true));
-                if (EquipmentParent(row.Element, row.Event)?.Slots?.Count > 0 && NativeButton("Contents", _buttonStyle!, GUILayout.Width(95)))
-                    _pendingEquipmentChange = () => SelectEquipmentContainer(conditionId, row.Element);
-                if (NativeButton("Remove", _buttonStyle!, GUILayout.Width(85)))
-                {
-                    var selected = row.Element;
-                    QueueEquipmentRemoval(conditionId, selected);
-                }
-
-                GUILayout.EndHorizontal();
-            }
-
-        GUILayout.EndScrollView();
-    }
-
     /// <summary>Opens search for this exact container rather than a global selected item.</summary>
     private void SelectEquipmentContainer(string conditionId, XElement container)
     {
+        RefreshEquipmentView(conditionId);
         _equipmentProfile = conditionId;
         _equipmentContainer = container;
         _equipmentSearchSlot = -1;
@@ -136,6 +103,12 @@ public sealed partial class WorldCreatorWindow
         _equipmentItemSearch = false;
         _equipmentNameDraft = EquipmentDisplayName(container);
         _equipmentQuantityDrafts.Clear();
+        foreach (var node in _equipmentViewByElement.Values.Where(node => node.Element == container))
+            for (var parent = node.Parent; parent != null; parent = parent.Parent)
+            {
+                _expandedEquipment.Add(parent.Element);
+                _collapsedEquipmentRoots.Remove(parent.Element);
+            }
     }
 
     /// <summary>Lists empty native slots and searches the items accepted by the chosen slot.</summary>
@@ -222,6 +195,7 @@ public sealed partial class WorldCreatorWindow
 
         if (matches.Length == 0)
             GUILayout.Label("No compatible items match this search.", _mutedStyle!);
+        DrawEquipmentKitPicker(conditionId, container, parent, index);
     }
 
     /// <summary>Defers removal of one equipment occurrence until the next layout pass.</summary>

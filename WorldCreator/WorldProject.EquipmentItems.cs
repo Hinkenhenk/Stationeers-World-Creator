@@ -26,6 +26,8 @@ internal sealed partial class WorldProject
     /// <summary>Returns a private container label or the readable catalog name without changing the XML.</summary>
     internal string GetEquipmentName(XElement item)
     {
+        var literal = (string?)item.Element("Name")?.Attribute("Value");
+        if (!string.IsNullOrWhiteSpace(literal)) return literal!;
         var key = (string?)item.Element("Name")?.Attribute("Key") ?? "";
         if (key.EndsWith("Name", StringComparison.Ordinal) && _spawnNames.TryGetValue(key.Substring(0, key.Length - 4), out var name))
             return name;

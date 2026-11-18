@@ -289,25 +289,4 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
 
     /// <summary>Checks project edits, painted masks and identity changes before navigation can discard them.</summary>
     private bool HasUnsavedChanges() => _project != null && (_project.HasChanges || _editedMapLayers.Count > 0 || _mapRgbDrafts.Count > 0 || _id != "WC_MyWorld" || _name != "My World");
-    /// <summary>Validates the current draft and creates the world mod while reporting failures to the player.</summary>
-    private void Export()
-    {
-        try
-        {
-            if (_mapRgbDrafts.Count > 0)
-            {
-                _status = "Correct the unfinished RGB value in Map studio before creating the world. Use R,G,B with three integers from 0 to 255.";
-                return;
-            }
-            var mods = ModSearchPaths.LocalMods(Assets.Scripts.Serialization.Settings.CurrentData?.SavePath);
-            foreach (var layerId in _editedMapLayers)
-                _project!.SetMapLayerTexture(layerId, _mapLayerPreviews[layerId].EncodeToPNG());
-            _status = "Created " + _project!.Export(mods, _id, _name) + ". Enable the mod and restart the game.";
-        }
-        catch (Exception e)
-        {
-            _status = "Could not create world: " + e.Message;
-            Debug.LogError("[World Creator] Export failed: " + e);
-        }
-    }
 }

@@ -126,6 +126,7 @@ internal sealed partial class WorldProject
         if (importedWorld == null)
             throw new InvalidDataException("This file does not contain a Stationeers WorldSettings/World element.");
         _world = new XElement(importedWorld);
+        RecognizeExportedWorld();
         _startConditionLibrary = new XElement(XDocument.Load(Path.Combine(assets, "Data", "startconditions.xml")).Root!);
         AddImportedStartConditionRecords(root);
         if (isAbsolute)

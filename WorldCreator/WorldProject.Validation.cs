@@ -13,15 +13,15 @@ internal sealed partial class WorldProject
     /// <summary>Checks world IDs against the supported filename characters, length and Windows reserved names.</summary>
     internal static bool IsValidWorldId(string id) => Regex.IsMatch(id, @"\A[A-Za-z0-9_]{1,47}\z") && !Regex.IsMatch(id, @"\A(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])\z", RegexOptions.IgnoreCase);
     /// <summary>Collects draft errors and terrain warnings before any package files are written.</summary>
-    internal List<(bool IsError, string Text)> ValidateForExport(string modsDirectory, string id, string displayName)
+    internal List<(bool IsError, string Text)> ValidateForExport(string modsDirectory, string id, string displayName, bool updateExisting = false)
     {
         var issues = new List<(bool IsError, string Text)>();
         if (!IsValidWorldId(id))
             issues.Add((true, "World ID must contain 1–47 letters, digits or underscores and cannot be a reserved filename such as CON or NUL. No prefix is required."));
         if (string.IsNullOrWhiteSpace(displayName) || displayName.Length > 80)
             issues.Add((true, "Enter a world name of up to 80 characters."));
-        if (IsValidWorldId(id) && !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 80 && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)))
-            issues.Add((true, "A mod with this ID already exists. Choose a new ID."));
+        if (IsValidWorldId(id) && !string.IsNullOrWhiteSpace(displayName) && displayName.Length <= 80 && Directory.Exists(Path.Combine(modsDirectory, "WorldCreator_" + id)) && !(updateExisting && CanUpdateExport(modsDirectory, id)))
+            issues.Add((true, "World Project → World ID: a mod with this ID already exists. Use Update world mod for the loaded local mod, or choose a new ID to create a copy."));
         var fields = AdvancedFields.Concat(WorldFields).Concat(AtmosphereFields).Concat(WeatherFields).Concat(OrbitFields).Concat(ResourceFields).Concat(MapFields).ToArray();
         foreach (var field in fields)
         {
@@ -123,7 +123,7 @@ internal sealed partial class WorldProject
             var packagedPath = Path.Combine(gameDataFolder, path.Replace('/', Path.DirectorySeparatorChar));
             var resolvedPath = File.Exists(packagedPath) || Directory.Exists(packagedPath) ? packagedPath : Path.Combine(_assets, path.Replace('/', Path.DirectorySeparatorChar));
             if (!File.Exists(resolvedPath) && !Directory.Exists(resolvedPath))
-                throw new InvalidDataException("An asset referenced by the exported world is missing: " + path);
+                throw new ExportAssetException(FindAssetField(attribute, path), path);
         }
     }
 
@@ -173,8 +173,8 @@ internal sealed partial class WorldProject
             {
                 var itemId = (string? )item.Attribute("Id");
                 var quantity = item.Element("Quantity") is XElement quantityElement ? (string?)quantityElement.Attribute("Value") : "1";
-                if (string.IsNullOrWhiteSpace(itemId) || !int.TryParse(quantity, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count < 1)
-                    throw new InvalidDataException("A custom supply crate contains an item without a valid prefab Id and positive integer quantity: " + id);
+                if (string.IsNullOrWhiteSpace(itemId) || !float.TryParse(quantity, NumberStyles.Float, CultureInfo.InvariantCulture, out var count) || float.IsNaN(count) || float.IsInfinity(count) || count < 0)
+                    throw new ExportEquipmentException(item, _spawnNames.TryGetValue(id!, out var crateName) ? crateName : id!);
             }
         }
 

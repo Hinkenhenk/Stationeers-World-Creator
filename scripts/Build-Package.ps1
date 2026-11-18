@@ -1,5 +1,5 @@
 <# .SYNOPSIS
-Builds WorldCreator from source and packages only our DLL, metadata and installation notes.
+Builds WorldCreator from source and packages our DLL, metadata, Workshop images and installation notes.
 #>
 [CmdletBinding()]
 param(
@@ -40,7 +40,7 @@ $mod = Join-Path $packageRoot 'WorldCreator'
 if (Test-Path -LiteralPath $packageRoot) { throw "Package staging directory already exists: $packageRoot" }
 New-Item -ItemType Directory -Force -Path (Join-Path $mod 'About') | Out-Null
 Copy-Item -LiteralPath $dll -Destination (Join-Path $mod 'WorldCreator.dll')
-Copy-Item -LiteralPath (Join-Path $repository 'WorldCreator/About/About.xml') -Destination (Join-Path $mod 'About/About.xml')
+Copy-Item -LiteralPath (Join-Path $repository 'WorldCreator/About/About.xml'), (Join-Path $repository 'WorldCreator/About/thumb.png'), (Join-Path $repository 'WorldCreator/About/Preview.png') -Destination (Join-Path $mod 'About')
 @"
 World Creator $version
 
@@ -48,7 +48,7 @@ Requires Stationeers, BepInEx 5 and StationeersLaunchPad.
 Close the game and extract WorldCreator into Documents\My Games\Stationeers\mods.
 Enable StationeersWorldCreator in LaunchPad, then choose Create World in the main menu.
 
-Built from source. Game assemblies, game assets and build dependencies are not included.
+Built from source. Game assemblies, extracted game assets and build dependencies are not included.
 Source, help and known issues: https://github.com/Hinkenhenk/Stationeers-World-Creator
 "@ | Set-Content -LiteralPath (Join-Path $mod 'README.txt') -Encoding utf8
 

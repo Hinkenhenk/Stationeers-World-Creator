@@ -58,7 +58,9 @@ internal static class MainMenuPatch
             var grid = sourceButton.transform.parent.GetComponent<GridLayoutGroup>();
             if (grid != null)
             {
-                ResizeMainMenuRows(grid);
+                var smallButtons = smallButton?.transform.parent as RectTransform;
+                if (smallButtons != null)
+                    grid.gameObject.AddComponent<MainMenuBannerLayout>().Initialize(grid, smallButtons);
             }
         }
         catch (Exception exception)
@@ -69,23 +71,6 @@ internal static class MainMenuPatch
         }
     }
 
-    /// <summary>Fits the added creator banner above the native small-button section without overlapping it.</summary>
-    private static void ResizeMainMenuRows(GridLayoutGroup grid)
-    {
-        var smallButtons = grid.transform.parent.Find("SmallButtonList") as RectTransform;
-        var list = (RectTransform)grid.transform;
-        if (smallButtons != null)
-        {
-            // Reserve the inactive Continue slot too, so it can appear without overlap.
-            var rows = grid.transform.childCount;
-            var available = list.anchoredPosition.y - smallButtons.anchoredPosition.y - 20f;
-            var height = (available - grid.padding.vertical - grid.spacing.y * (rows - 1)) / rows;
-            if (height > 0f)
-                grid.cellSize = new Vector2(grid.cellSize.x, Mathf.Min(grid.cellSize.y, height));
-        }
-
-        LayoutRebuilder.MarkLayoutForRebuild((RectTransform)grid.transform);
-    }
 }
 
 internal sealed class MainMenuArtwork : MonoBehaviour

@@ -27,11 +27,13 @@ Choose **Create a New World** for a blank project, or **Load a World** to edit a
 - **Environment:** gas composition, temperature curves and climate calculations.
 - **Weather:** installed events, custom effects and a reusable weather library.
 - **Orbit & seasons:** orbital settings, landing coordinates and a rotating preview.
-- **Starting conditions:** starting profiles, landers, supply crates and individual equipment slots. Search for compatible items, adjust quantities and rename containers.
+- **Starting conditions:** a collapsible equipment tree with clickable paths, separate player kits, landers and named supply crates. Add compatible items or complete supply kits, adjust stacks, and set tank gases, liquids and temperatures.
 - **Map Studio and Terrain:** region masks, map painting and access to the game's terrain tools.
 - **Resources, Asset libraries and Advanced:** ore settings, project files and the underlying XML fields.
 
-Each page has a **Help** button. When finished, choose **Create world mod**. Restart Stationeers, enable the generated world mod in LaunchPad, then select it when starting a new world.
+Each page has a **Help** button. When finished, choose **Create world mod**. Load a local World Creator export to revise it with **Update world mod**; its previous version is backed up outside the mods folder. Restart Stationeers, enable the generated world mod in LaunchPad, then select it when starting a new world.
+
+Export errors identify the affected field or item and offer a shortcut to its settings. Missing images can be replaced with a solid-colour PNG. Advanced has a live search that filters cards as you type.
 
 A blank project needs compiled terrain before it can be played. The climate preview shows the initial world conditions; active weather, phase changes and player heat can change the result in game.
 
@@ -67,4 +69,4 @@ To build with your installed game and BepInEx:
 ./scripts/Build-Package.ps1 -GameDirectory 'D:/Games/steamapps/common/Stationeers'
 ```
 
-The script creates a ZIP and SHA256 checksum in `dist`. It packages our DLL, mod metadata and installation notes; game assemblies and textures are excluded. For a release, update the version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, build and test, then upload the ZIP and checksum to the matching GitHub release.
+The script creates a ZIP and SHA256 checksum in `dist`. It packages our DLL, mod metadata, Workshop artwork and installation notes; game assemblies and extracted game assets are excluded. For a release, update the version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, build and test, then upload the ZIP and checksum to the matching GitHub release.

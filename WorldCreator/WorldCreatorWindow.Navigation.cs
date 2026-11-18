@@ -12,6 +12,7 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Creates a project from a blank world or the selected installed template.</summary>
     private void LoadTemplate()
     {
+        ClearExportIssue();
         try
         {
             _project = _template == 0 ? WorldProject.CreateBlank(Path.Combine(Application.dataPath, "StreamingAssets")) : new WorldProject(Path.Combine(Application.dataPath, "StreamingAssets"), Files[_template]);
@@ -181,17 +182,19 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Loads the selected world into a new project and refreshes its map previews.</summary>
     private void LoadWorld(string path)
     {
+        ClearExportIssue();
         try
         {
             _project = new WorldProject(Path.Combine(Application.dataPath, "StreamingAssets"), path, true);
             _template = -1;
             _presetSelection = -1;
-            _id = "WC_MyWorld";
+            var mods = ModSearchPaths.LocalMods(Assets.Scripts.Serialization.Settings.CurrentData?.SavePath);
+            _id = _project.ExportedWorldId != null && _project.CanUpdateExport(mods, _project.ExportedWorldId) ? _project.ExportedWorldId : "WC_MyWorld";
             _name = ResolveLoadedWorldDisplayName(path, _project.DisplayName);
             _pendingPage = 0;
             LoadMapPreview();
             _pendingScreen = 3;
-            _status = "Loaded world settings. Review and export as a new mod.";
+            _status = _project.CanUpdateExport(mods, _id) ? "Loaded local world. Update this mod, or change World ID to create a separate copy." : "Loaded world settings. Review and export as a new mod.";
         }
         catch (Exception e)
         {
