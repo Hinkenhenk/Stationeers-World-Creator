@@ -10,6 +10,7 @@
 /TOOL-PLAN.md
 /docs/development.md
 /backups/
+/scripts/
 /.dotnet_cli_home/
 /.dotnet-home/
 /.tmp-ilcompare/
