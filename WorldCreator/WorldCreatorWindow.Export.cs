@@ -72,6 +72,7 @@ public sealed partial class WorldCreatorWindow
             if (_project.OrbitFields.Contains(field)) return 3;
             if (_project.ResourceFields.Contains(field)) return 4;
         }
+        if (message.IndexOf("Orbit & seasons", StringComparison.OrdinalIgnoreCase) >= 0) return 3;
         if (message.IndexOf("crate", StringComparison.OrdinalIgnoreCase) >= 0 || message.IndexOf("spawn", StringComparison.OrdinalIgnoreCase) >= 0 || message.IndexOf("start condition", StringComparison.OrdinalIgnoreCase) >= 0) return 8;
         return 0;
     }

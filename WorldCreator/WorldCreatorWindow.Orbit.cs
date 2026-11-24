@@ -11,7 +11,6 @@ public sealed partial class WorldCreatorWindow
     private float _orbitPhase = 45f;
     private float _orbitZoom = 1f;
     private Quaternion _orbitGlobeRotation = DefaultOrbitRotation();
-    private float _orbitSpinPhase;
     private float _orbitSimulationSpeed = 1f;
     private bool _orbitSimulationPlaying;
     private bool _orbitDragging;
@@ -23,16 +22,10 @@ public sealed partial class WorldCreatorWindow
         return field != null && double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && value > 0 ? value : 1d;
     }
 
-    /// <summary>Reads the signed body rotation period, retaining retrograde direction.</summary>
-    private double RotationPeriodDays()
-    {
-        var field = _project?.OrbitFields.FirstOrDefault(f => f.Label.IndexOf("RotationPeriod", StringComparison.OrdinalIgnoreCase) >= 0);
-        return field != null && double.TryParse(field.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 0d;
-    }
-
     /// <summary>Arranges the orbital preview beside its editable orbital and landing settings.</summary>
     private void DrawOrbitPreview()
     {
+        _orbitFrameRotation = _project!.GetRotationSettings();
         var distance = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / SemiMajorAxisAu") || f.Label.EndsWith(" / SemiMajorAxisKm"));
         var eccentricity = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / Eccentricity"));
         if (distance == null || eccentricity == null || !double.TryParse(distance.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var a) || !double.TryParse(eccentricity.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var e) || double.IsNaN(a) || double.IsInfinity(a) || double.IsNaN(e) || double.IsInfinity(e) || a <= 0 || e < 0 || e >= 1)
@@ -57,7 +50,7 @@ public sealed partial class WorldCreatorWindow
             if (landingPointHidden)
                 GUILayout.Label("The selected landing point is on the far side; drag the globe to bring it into view.", _mutedStyle!);
             GUILayout.Label(
-                "The red marker is the configured landing site. This globe is a coordinate preview; terrain shape and the game's body-axis conventions are not simulated.",
+                "Red: landing site. Lighting follows the draft rotation and axis. This is an illustrative coordinate preview; terrain, eclipses and parent-star lighting in nested systems are not simulated.",
                 _mutedStyle!
             );
         }
@@ -102,6 +95,7 @@ public sealed partial class WorldCreatorWindow
         foreach (var field in _project!.OrbitFields.Where(field => !field.Label.StartsWith("Celestial body/", StringComparison.Ordinal)))
             DrawOrbitField(field);
         GUILayout.EndVertical();
+        DrawRotationSettings();
         GUILayout.Space(CardSpacing);
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("CELESTIAL BODY", _sectionStyle!);
@@ -184,6 +178,8 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Draws the textured landing globe, coordinate grid and landing marker, reporting a hidden marker.</summary>
     private bool DrawLandingSiteSurface(Rect chart, double latitude, double longitude)
     {
+        try { LandingSiteSunAngle(_orbitPhase, _orbitFrameRotation!); }
+        catch (InvalidOperationException error) { GUI.Label(chart, error.Message, _mutedStyle!); return true; }
         EnsureOrbitSpherePreviews();
         var radius = Mathf.Min(Mathf.Max(18f, Mathf.Min(chart.width, chart.height) * .39f * _orbitZoom), Mathf.Min(chart.width, chart.height) * .47f);
         var center = new Vector2(chart.center.x, chart.center.y);
@@ -237,7 +233,7 @@ public sealed partial class WorldCreatorWindow
     {
         var hasPrevious = false;
         var previous = Vector2.zero;
-        for (var longitude = 0; longitude <= 360; longitude += 3)
+        for (var longitude = -180; longitude <= 180; longitude += 3)
         {
             var projected = ProjectGlobePoint(latitude, longitude, center, radius);
             if (projected.Depth > 0)
@@ -256,12 +252,8 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Projects a surface coordinate into chart pixels and retains depth for visibility checks.</summary>
     private (Vector2 Point, double Depth) ProjectGlobePoint(double latitude, double longitude, Vector2 center, float radius)
     {
-        var lat = latitude * Math.PI / 180d;
-        var lon = longitude * Math.PI / 180d;
-        var x = Math.Cos(lat) * Math.Sin(lon);
-        var y = Math.Sin(lat);
-        var z = Math.Cos(lat) * Math.Cos(lon);
-        var rotated = _orbitGlobeRotation * new Vector3((float)x, (float)y, (float)z);
+        var point = WorldProject.RotationSiteNormal(_orbitFrameRotation!, latitude, longitude);
+        var rotated = _orbitGlobeRotation * new Vector3((float)point.X, (float)point.Y, (float)point.Z);
         return (new Vector2(center.x + rotated.x * radius, center.y - rotated.y * radius), rotated.z);
     }
 
@@ -311,11 +303,17 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Calculates the direction from the playable body toward the primary body at the preview phase.</summary>
     private Vector3 CurrentPrimaryLightDirection()
     {
+        return PrimaryLightDirectionAtPhase(_orbitPhase);
+    }
+
+    /// <summary>Calculates the body-to-parent light direction at one mean orbital phase in the native XYZ plane.</summary>
+    private Vector3 PrimaryLightDirectionAtPhase(float phase)
+    {
         var eccentricityField = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / Eccentricity", StringComparison.Ordinal));
         if (eccentricityField == null || !double.TryParse(eccentricityField.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var eccentricity) || double.IsNaN(eccentricity) || double.IsInfinity(eccentricity) || eccentricity < 0 || eccentricity >= 1)
             return Vector3.back;
         var position = CalculateOrbitPosition(
-            SolveEccentricAnomaly(_orbitPhase * Math.PI / 180d, eccentricity),
+            SolveEccentricAnomaly(phase * Math.PI / 180d, eccentricity),
             eccentricity,
             OrbitAngle("Inclination"),
             OrbitAngle("LongitudeOfAscendingNode"),
@@ -465,7 +463,7 @@ public sealed partial class WorldCreatorWindow
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         if (_orbitView == 3)
-            GUILayout.Label("Landing site · drag to rotate the globe and light reference; simulation moves the light around the stationary globe", _mutedStyle!);
+            GUILayout.Label("Landing site · drag to rotate the view; simulation uses the applied rotation and axis", _mutedStyle!);
         else
         {
             GUILayout.Label(

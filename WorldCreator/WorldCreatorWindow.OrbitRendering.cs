@@ -19,7 +19,6 @@ public sealed partial class WorldCreatorWindow
     private MeshRenderer? _orbitSphereRenderer;
     private Light? _orbitSphereLight;
     private Material? _orbitSphereMaterial;
-    private float _orbitSphereRenderedSpin = float.NaN;
     private Quaternion _orbitSphereRenderedRotation = Quaternion.identity;
     private bool _orbitSphereTexturesDirty = true;
     private byte[]? _orbitSourceSurfaceData;
@@ -46,12 +45,23 @@ public sealed partial class WorldCreatorWindow
 
         if (_orbitSphereCamera == null || _orbitSphereObject == null || _orbitSphereRenderer == null || _orbitSphereMaterial == null)
             return;
-        var spin = _orbitView == 3 ? 0f : _orbitSpinPhase;
+        Quaternion bodyRotation;
+        try { bodyRotation = BodyRotationAtPhase(_orbitPhase); }
+        catch (InvalidOperationException) { bodyRotation = Quaternion.identity; }
         var viewRotation = _orbitGlobeRotation;
-        var sphereRotation = _orbitGlobeRotation * Quaternion.Euler(0f, spin, 0f);
+        var sphereRotation = viewRotation * (_orbitView == 3 ? Quaternion.identity : bodyRotation);
         var sourceDirection = CurrentPrimaryLightDirection();
+        if (_orbitView == 3)
+        {
+            try
+            {
+                var lighting = WorldProject.CalculateRotationLighting(_orbitFrameRotation!, _orbitPhase, 0, 0, sourceDirection.x, sourceDirection.y, sourceDirection.z);
+                sourceDirection = new Vector3((float)lighting.BodySunDirection.X, (float)lighting.BodySunDirection.Y, (float)lighting.BodySunDirection.Z);
+            }
+            catch (InvalidOperationException) { sourceDirection = Vector3.back; }
+        }
         var lightDirectionView = (viewRotation * sourceDirection).normalized;
-        if (!_orbitSphereTexturesDirty && Quaternion.Angle(_orbitSphereRenderedRotation, _orbitGlobeRotation) < .01f && Mathf.Approximately(_orbitSphereRenderedSpin, spin) && Vector3.Angle(_orbitRenderedLightDirectionView, lightDirectionView) < .01f)
+        if (!_orbitSphereTexturesDirty && Quaternion.Angle(_orbitSphereRenderedRotation, sphereRotation) < .01f && Vector3.Angle(_orbitRenderedLightDirectionView, lightDirectionView) < .01f)
             return;
         _orbitSphereObject.transform.rotation = sphereRotation;
         _orbitLightDirectionView = lightDirectionView;
@@ -69,8 +79,7 @@ public sealed partial class WorldCreatorWindow
             _orbitSphereRenderer.enabled = rendererWasEnabled;
         }
 
-        _orbitSphereRenderedSpin = spin;
-        _orbitSphereRenderedRotation = _orbitGlobeRotation;
+        _orbitSphereRenderedRotation = sphereRotation;
         _orbitRenderedLightDirectionView = _orbitLightDirectionView;
         _orbitSphereTexturesDirty = false;
     }

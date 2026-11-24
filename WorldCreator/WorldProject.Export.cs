@@ -27,7 +27,7 @@ internal sealed partial class WorldProject
         PreparePlayableAreaIdentifiers(worldOutput, id);
         var changedWeather = _hasImportedWeatherDefinitions || WeatherFields.Any(f => f.Value != f.Original) || _weather.Any(w => _userWeatherIds.Contains((string? )w.Event.Attribute("Id") ?? string.Empty));
         var weatherCopies = PrepareWeatherCopies(worldOutput, id, changedWeather, out var weatherNames);
-        var changedOrbit = _orbitBody != null && (_hasImportedOrbitBody || OrbitFields.Any(f => f.Value != f.Original));
+        var changedOrbit = _orbitBody != null && (_hasImportedOrbitBody || _rotationChanged || OrbitFields.Any(f => f.Value != f.Original));
         RewriteExportOrbitReferences(worldOutput, id, changedOrbit);
         var data = CreateExportData(worldOutput, id, changedWeather, changedOrbit, weatherCopies);
         PrepareTextureReplacements(data, id);

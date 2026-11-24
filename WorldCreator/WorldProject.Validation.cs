@@ -36,6 +36,8 @@ internal sealed partial class WorldProject
         }
 
         issues.AddRange(ValidateNumericRanges(fields));
+        try { ValidateRotationSettings(); }
+        catch (InvalidOperationException error) { issues.Add((true, error.Message)); }
 
         if (_isBlankProject && CompiledTerrainFiles.Count == 0)
             issues.Add((false, "This blank world has no compiled terrain. Add compiled terrain before trying to load it in game."));

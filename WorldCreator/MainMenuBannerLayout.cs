@@ -14,12 +14,11 @@ internal sealed class MainMenuBannerLayout : MonoBehaviour
     private readonly Vector3[] _corners = new Vector3[4];
     private float _topInset;
     private float _preferredHeight;
-    private int _rows = -1;
-    private Vector2 _lastSize;
 
     /// <summary>Preserves the native banner list inside a clipped, vertically scrollable viewport.</summary>
     internal void Initialize(GridLayoutGroup grid, RectTransform smallButtons)
     {
+        Canvas.ForceUpdateCanvases();
         _grid = grid;
         _content = (RectTransform)grid.transform;
         _smallButtons = smallButtons;
@@ -59,25 +58,42 @@ internal sealed class MainMenuBannerLayout : MonoBehaviour
     private void LateUpdate()
     {
         if (_grid == null || _smallButtons == null || _viewport == null) return;
-        _smallButtons.GetWorldCorners(_corners);
-        var bottom = _parent.InverseTransformPoint(_corners[1]).y + 20;
-        var available = Mathf.Max(40, _parent.rect.yMax - _topInset - bottom);
+        var bottom = GetSmallButtonsTop() + 20;
+        var available = Mathf.Max(0, _parent.rect.yMax - _topInset - bottom);
         var rows = 0;
         foreach (Transform child in _content)
         {
             var element = child.GetComponent<LayoutElement>();
             if (child.gameObject.activeSelf && (element == null || !element.ignoreLayout)) rows++;
         }
-        var size = new Vector2(_viewport.rect.width, available);
-        if (_rows == rows && (_lastSize - size).sqrMagnitude < 0.01f) return;
-        _rows = rows;
-        _lastSize = size;
         var layout = MenuBannerSizing.Fit(available, _preferredHeight, rows, _grid.padding.vertical, _grid.spacing.y);
+        var cellSize = new Vector2(Mathf.Max(0, _viewport.rect.width - _grid.padding.horizontal), (float)layout.RowHeight);
+        if ((_grid.cellSize - cellSize).sqrMagnitude < 0.01f && Mathf.Abs(_viewport.rect.height - available) < 0.01f
+            && Mathf.Abs(_content.rect.height - (float)layout.ContentHeight) < 0.01f) return;
         _viewport.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, available);
-        _grid.cellSize = new Vector2(size.x - _grid.padding.horizontal, (float)layout.RowHeight);
+        _grid.cellSize = cellSize;
         _content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)layout.ContentHeight);
         _scroll.vertical = layout.ContentHeight > available + 0.5f;
         if (!_scroll.vertical) _content.anchoredPosition = Vector2.zero;
         LayoutRebuilder.MarkLayoutForRebuild(_content);
+    }
+
+    /// <summary>Reserves extra rows even when another mod's buttons extend outside their native container rectangle.</summary>
+    private float GetSmallButtonsTop()
+    {
+        var top = GetTop(_smallButtons);
+        foreach (Transform child in _smallButtons)
+            if (child.gameObject.activeInHierarchy && child is RectTransform rect)
+                top = Mathf.Max(top, GetTop(rect));
+        return top;
+    }
+
+    /// <summary>Measures a transformed rectangle in the same coordinates used to position the banner viewport.</summary>
+    private float GetTop(RectTransform rect)
+    {
+        rect.GetWorldCorners(_corners);
+        var top = float.NegativeInfinity;
+        foreach (var corner in _corners) top = Mathf.Max(top, _parent.InverseTransformPoint(corner).y);
+        return top;
     }
 }

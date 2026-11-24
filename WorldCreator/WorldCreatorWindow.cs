@@ -100,9 +100,6 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
         var orbitalPeriod = OrbitPeriodDays();
         if (orbitalPeriod > 0)
             _orbitPhase = (_orbitPhase + 360f * _orbitSimulationSpeed * delta / 60f) % 360f;
-        var rotationPeriod = RotationPeriodDays();
-        if (_orbitView != 3 && rotationPeriod != 0)
-            _orbitSpinPhase = (_orbitSpinPhase + 360f * (float)orbitalPeriod * _orbitSimulationSpeed * delta / (60f * (float)Math.Abs(rotationPeriod)) * (rotationPeriod < 0 ? -1f : 1f)) % 360f;
     }
 
     /// <summary>Recalculates the creator's screen bounds so resolution changes take effect immediately.</summary>
@@ -166,6 +163,7 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
             }
 
             ApplyHelpNavigation();
+            ApplyRotationDraft();
             ApplyEquipmentChange();
             if (_pendingGasRemoval != null)
             {

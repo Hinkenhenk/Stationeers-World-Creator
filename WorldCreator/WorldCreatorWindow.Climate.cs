@@ -17,6 +17,7 @@ public sealed partial class WorldCreatorWindow
     private string? _pressureInputKey;
     private string? _pressureError;
     private string? _pressureOrbitError;
+    private string? _pressureSiteNote;
     private double _pressureOrbitPeriod;
     private double _pressureOrbitEccentricity;
     private double _pressureOrbitDistance;
@@ -226,6 +227,11 @@ public sealed partial class WorldCreatorWindow
     {
         var minimum = new float[361];
         var maximum = new float[361];
+        var rotation = _project!.GetRotationSettings();
+        var primary = string.IsNullOrWhiteSpace(_project.PrimaryBodyId) ? "Sun" : _project.PrimaryBodyId;
+        var directStar = rotation.ParentId == primary && _project.IsStarPrimary(primary);
+        var site = directStar ? new float[361] : null;
+        _pressureSiteNote = directStar ? null : "Landing-site curve unavailable: lighting from the parent star in a nested system needs parent-orbit modelling.";
         for (var phase = 0; phase <= 360; phase++)
         {
             var orbit = PressureEstimate.AtMeanAnomaly(_pressureOrbitDistance, _pressureOrbitEccentricity, _pressureOrbitSolarConstant, phase);
@@ -236,13 +242,10 @@ public sealed partial class WorldCreatorWindow
                 minimum[phase] = Mathf.Min(minimum[phase], pressure);
                 maximum[phase] = Mathf.Max(maximum[phase], pressure);
             }
+            if (site != null)
+                site[phase] = PressureAtTemperature(moles, _climatePreview!.Evaluate(LandingSiteSunAngle(phase, rotation), orbit.Sunlight)[0]);
         }
-
-        return new[]
-        {
-            minimum,
-            maximum
-        };
+        return site == null ? new[] { minimum, maximum } : new[] { minimum, maximum, site };
     }
 
     /// <summary>Shows daily pressure and the seasonal pressure envelope with their calculation limits.</summary>
@@ -281,7 +284,7 @@ public sealed partial class WorldCreatorWindow
             HelpLabel(
                 new GUIContent(
                 "Pressure over one eccentric orbit  ⓘ",
-                "Solves Kepler's equation for mean anomaly, calculates r = a(1 − e cos E), then irradiance = solar constant / r². Maps irradiance across periapsis/apoapsis limits to the game's linear 0–100 sunlight input. At each phase samples sun angles 0°–180°. This is a direct-primary two-body estimate, not atmospheric evolution or a date/latitude-specific season forecast."
+                "Solves the eccentric orbit and inverse-square irradiance, mapped to the game's 0–100 sunlight input. Blue/yellow bound all sun angles. Pink, when available, uses this landing site's latitude/longitude and applied rotation/axis. Pink samples once per orbital degree and may miss short daily extrema. It is illustrative; weather, thermal lag and parent-star lighting in nested systems are excluded."
             ),
                 _mutedStyle!
             );
@@ -294,13 +297,16 @@ public sealed partial class WorldCreatorWindow
                 GUILayout.Label("One orbit from closest approach: constant time spacing, with a lower/upper pressure across sampled day/night sun angles.", _mutedStyle!);
                 DrawClimatePlot(
                     _pressureOrbit,
-                    new[] { ClimateColors[4], ClimateColors[2] },
-                    new[] { true, true },
+                    new[] { ClimateColors[4], ClimateColors[2], ClimateColors[0] },
+                    new[] { true, true, true },
                     xMaximum,
                     periodAvailable ? "Elapsed game days from periapsis" : "Mean anomaly (°) · 0 / 360 periapsis, 180 apoapsis",
                     "Pressure envelope (kPa)",
-                    0
+                    _orbitPhase / 360 * xMaximum
                 );
+                if (_pressureOrbit.Length > 2)
+                    GUILayout.Label("Pink: sampled landing-site pressure using the applied rotation and axis.", _mutedStyle!);
+                if (_pressureSiteNote != null) GUILayout.Label(_pressureSiteNote, _mutedStyle!);
                 GUILayout.Label(
                     "Blue: lower sun-angle pressure · Yellow: upper sun-angle pressure · Sampled orbit range: " + PressureRange(_pressureOrbit.SelectMany(series => series).ToArray()),
                     _mutedStyle!
@@ -314,7 +320,7 @@ public sealed partial class WorldCreatorWindow
                 if (_pressureOrbitEccentricity == 0)
                     GUILayout.Label("Circular orbit: constant irradiance and pressure envelope. A zero-width irradiance range uses sunlight input 0.", _mutedStyle!);
                 GUILayout.Label(
-                    "No thermal lag, condensation, weather or gas exchange. A latitude may not reach every sampled sun angle. Parent-body orbital seasons are not included.",
+                    "Blue/yellow include sun angles the site may never reach. No thermal lag, condensation, weather or gas exchange; parent-body orbital seasons are excluded.",
                     _mutedStyle!
                 );
             }
@@ -451,7 +457,7 @@ public sealed partial class WorldCreatorWindow
     {
         var atmosphereKey = string.Join("\n", _project!.AtmosphereFields.Select(field => field.Label + "=" + field.Value));
         var orbitKey = string.Join("\n", _project.OrbitFields.Concat(_project.WorldFields).Select(field => field.Label + "=" + field.Value));
-        var pressureKey = atmosphereKey + "\nOrbit=" + orbitKey;
+        var pressureKey = atmosphereKey + "\nOrbit=" + orbitKey + "\nRotation=" + _project.GetRotationSettings().CacheKey;
         var key = pressureKey + "\nSunlight=" + _climateSunlight.ToString("R", CultureInfo.InvariantCulture);
         if (_climateProject != _project || key != _climateInputKey)
         {

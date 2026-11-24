@@ -26,7 +26,7 @@ Choose **Create a New World** for a blank project, or **Load a World** to edit a
 
 - **Environment:** gas composition, temperature curves and climate calculations.
 - **Weather:** installed events, custom effects and a reusable weather library.
-- **Orbit & seasons:** orbital settings, landing coordinates and a rotating preview.
+- **Orbit & seasons:** orbital settings, rotation period or speed, rotation axes, tidal locking, landing coordinates and a rotating preview.
 - **Starting conditions:** a collapsible equipment tree with clickable paths, separate player kits, landers and named supply crates. Add compatible items or complete supply kits, adjust stacks, and set tank gases, liquids and temperatures.
 - **Map Studio and Terrain:** region masks, map painting and access to the game's terrain tools.
 - **Resources, Asset libraries and Advanced:** ore settings, project files and the underlying XML fields.
