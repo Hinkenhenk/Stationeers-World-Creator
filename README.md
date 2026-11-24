@@ -63,10 +63,4 @@ Each method has a summary describing its purpose. Keep control flow shallow: pre
 
 Releases are built locally and uploaded as prebuilt packages. GitHub Actions is not used.
 
-To build with your installed game and BepInEx:
-
-```powershell
-./scripts/Build-Package.ps1 -GameDirectory 'D:/Games/steamapps/common/Stationeers'
-```
-
-The script creates a ZIP and SHA256 checksum in `dist`. It packages our DLL, mod metadata, Workshop artwork and installation notes; game assemblies and extracted game assets are excluded. For a release, update the version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, build and test, then upload the ZIP and checksum to the matching GitHub release.
+For a release, update the version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, build and test, then upload the ZIP and SHA256 checksum to the matching GitHub release. Packages contain our DLL, mod metadata, Workshop artwork and installation notes; game assemblies and extracted game assets are excluded.
