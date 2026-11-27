@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -93,11 +93,17 @@ public sealed partial class WorldCreatorWindow
     private void ScanWorlds()
     {
         _loadChoices.Clear();
-        var installed = (WorkshopMenu.ModsConfig?.Mods.AsEnumerable() ?? Enumerable.Empty<ModData>()).Where(mod => !(mod is CoreModData)).Select(mod => (Path: (string)mod.DirectoryPath, Workshop: mod is WorkshopModData));
-        foreach (var root in ModSearchPaths.Discover(Application.dataPath, Assets.Scripts.Serialization.Settings.CurrentData?.SavePath, installed))
+        foreach (var root in DiscoverModRoots())
             AddWorldChoices(root.Path, root.Workshop);
         _loadChoices.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         _loadSource = _loadChoices.Any(choice => !choice.Workshop) ? 0 : 1;
+    }
+
+    /// <summary>Shares the game-resolved mod locations between world and celestial-library discovery.</summary>
+    private static IEnumerable<(string Path, bool Workshop)> DiscoverModRoots()
+    {
+        var installed = (WorkshopMenu.ModsConfig?.Mods.AsEnumerable() ?? Enumerable.Empty<ModData>()).Where(mod => !(mod is CoreModData)).Select(mod => (Path: (string)mod.DirectoryPath, Workshop: mod is WorkshopModData));
+        return ModSearchPaths.Discover(Application.dataPath, Assets.Scripts.Serialization.Settings.CurrentData?.SavePath, installed);
     }
 
     /// <summary>Scans a mod root's GameData folders while tolerating unreadable directories.</summary>

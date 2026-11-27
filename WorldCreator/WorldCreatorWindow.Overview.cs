@@ -188,13 +188,13 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("CONTINUE BUILDING", _sectionStyle!);
         GUILayout.Label("Open a section to edit its settings.", _mutedStyle!);
-        for (var page = 1; page < Pages.Length; page++)
+        foreach (var page in NavigationOrder)
         {
-            if (page == 6)
+            if (page == 0 || page == 6)
                 continue;
             if (NativeButton(Pages[page], _navStyle!, GUILayout.Height(34)))
                 _pendingPage = page;
-            if (page + 1 < Pages.Length)
+            if (page != 9)
                 GUILayout.Space(10);
         }
 

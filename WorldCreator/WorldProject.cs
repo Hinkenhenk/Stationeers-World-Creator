@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -151,6 +151,8 @@ internal sealed partial class WorldProject
             AddCelestialBodySettings();
         }
 
+        InitializeExtraCelestialDefinitions();
+        if (isAbsolute) LoadCustomStar(file);
         RefreshOptionalSettings();
         InitializeSpaceMapSettings();
     }

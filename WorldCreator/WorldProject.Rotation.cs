@@ -123,6 +123,8 @@ internal sealed partial class WorldProject
     private void ValidateRotationSettings()
     {
         var settings = GetRotationSettings();
+        if (OrbitParentCreatesCycle(settings.ParentId, settings.BodyId))
+            throw new InvalidOperationException("Orbit & seasons → Parent body: a body cannot orbit itself or form a circular parent chain.");
         var body = _world.Element("CelestialBodies")?.Elements().FirstOrDefault(element => RotationAttribute(element.Attribute("Id")) == settings.BodyId);
         if (body?.Elements().Count(IsRotationElement) > 1) throw new InvalidOperationException("Orbit & seasons → Rotation: the playable body must have only one rotation mode.");
         if (settings.HasExplicitRotation) ValidateRotationValues(settings.Mode, settings.X, settings.Y, settings.Z, settings.Value, settings.OrbitPeriod);

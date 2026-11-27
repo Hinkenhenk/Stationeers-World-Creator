@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -32,13 +32,39 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Draws one editable card per curve and stops after an edit changes its structure.</summary>
     private void DrawCurveKeyEditor(List<WorldProject.Field> fields, string section)
     {
-        var keys = CurveKeys(fields);
-        foreach (var curve in keys.GroupBy(key => key.Path.Substring(0, key.Path.LastIndexOf("/Key #", StringComparison.Ordinal))))
+        var curves = CurveKeys(fields).GroupBy(key => key.Path.Substring(0, key.Path.LastIndexOf("/Key #", StringComparison.Ordinal))).ToArray();
+        if (section != "Atmosphere")
         {
-            if (DrawCurveCard(curve, fields, section))
-                return;
+            foreach (var curve in curves) if (DrawCurveCard(curve, fields, section)) return;
+            return;
+        }
+        foreach (var category in new[] { "solar", "greenhouse", "density", "other" })
+        {
+            var group = curves.Where(curve => CurveLayoutGroup(curve.Key) == category).ToArray();
+            var requested = category == "solar" ? 3 : category == "other" ? 1 : 2;
+            var columns = Math.Max(1, Math.Min(requested, (int)((PageContentWidth + CardSpacing) / (520 + CardSpacing))));
+            var width = (PageContentWidth - (columns - 1) * CardSpacing) / columns;
+            for (var start = 0; start < group.Length; start += columns)
+            {
+                GUILayout.BeginHorizontal();
+                var changed = false;
+                for (var column = 0; column < columns && start + column < group.Length; column++)
+                {
+                    if (column > 0) GUILayout.Space(CardSpacing);
+                    GUILayout.BeginVertical(GUILayout.Width(width), GUILayout.ExpandHeight(false));
+                    changed = DrawCurveCard(group[start + column], fields, section);
+                    GUILayout.EndVertical();
+                    if (changed) break;
+                }
+                GUILayout.EndHorizontal();
+                if (changed) return;
+            }
         }
     }
+
+    /// <summary>Groups related curve editors into solar (three), greenhouse (two) and density (two) columns.</summary>
+    private static string CurveLayoutGroup(string path) => path.EndsWith("/Temperature", StringComparison.Ordinal) || path.Contains("SolarRadiationTemperature") ? "solar"
+        : path.Contains("GHGTemperatureOffset") ? "greenhouse" : path.Contains("DensityOffset") ? "density" : "other";
 
     /// <summary>Edits a numeric curve coordinate and enforces any supplied bounds.</summary>
     private void DrawCurveNumber(WorldCreator.WorldProject.Field field, float width, double? minimum = null, double? maximum = null)

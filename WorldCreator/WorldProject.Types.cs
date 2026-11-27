@@ -203,6 +203,8 @@ internal sealed partial class WorldProject
         /// <summary>Rejects invalid numeric, boolean, gas-quantity and bounded-curve edits before they reach XML.</summary>
         internal void Validate()
         {
+            if (Value != Original && Label == CelestialColourLabel && !TryParseCelestialColour(Value, out _))
+                throw new InvalidOperationException("Orbit & seasons → RGB: enter three values from 0 to 1 separated by commas, for example 0.9,0.5,0.3.");
             if (Value != Original && IsNumeric)
                 ValidateNumericField(Label, Value);
 

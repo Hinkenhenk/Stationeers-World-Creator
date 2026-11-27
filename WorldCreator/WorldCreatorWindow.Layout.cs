@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,7 +42,9 @@ public sealed partial class WorldCreatorWindow
         DrawSidebar();
     }
 
-    /// <summary>Draws the fixed page navigation and queues page changes for the next layout pass.</summary>
+    private Vector2 _sidebarScroll;
+
+    /// <summary>Draws the page navigation and queues page changes for the next layout pass.</summary>
     private void DrawSidebar()
     {
         var top = 82f + Mathf.Max(0, (NativeMenuButtonAppearance.Back?.Size.y ?? 64f) - 34f);
@@ -58,16 +60,25 @@ public sealed partial class WorldCreatorWindow
         y += 42f;
         GUI.Label(new Rect(left, y, width, 22f), "NAVIGATION", _mutedStyle!);
         y += 22f;
-        foreach (var i in Enumerable.Range(0, Pages.Length).Where(page => page != 6).Concat(new[] { 6 }))
+        var rowHeight = Mathf.Clamp((height - y - 8f) / NavigationOrder.Length, 34f, 44f);
+        var scroll = NavigationOrder.Length * rowHeight > height - y - 8f;
+        if (scroll)
         {
-            var buttonRect = new Rect(left, y, width, 34f);
+            _sidebarScroll = GUI.BeginScrollView(new Rect(0f, y, SidebarWidth, height - y),
+                _sidebarScroll, new Rect(0f, 0f, SidebarWidth - 18f, NavigationOrder.Length * rowHeight));
+            y = 0f;
+        }
+        foreach (var i in NavigationOrder)
+        {
+            var buttonRect = new Rect(left, y, scroll ? width - 18f : width, rowHeight - 4f);
             if (NativeButtonAt(buttonRect, Pages[i], _navStyle!))
                 _pendingPage = i;
             if (i == _page && Event.current.type == EventType.Repaint)
                 GUI.DrawTexture(buttonRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, Accent, 2, 5);
-            y += 44f;
+            y += rowHeight;
         }
 
+        if (scroll) GUI.EndScrollView();
         GUI.EndGroup();
     }
 
@@ -150,6 +161,8 @@ public sealed partial class WorldCreatorWindow
                 return "Preview and paint region masks. Painting edits this new world copy and includes a custom mask texture in the created mod.";
             case 8:
                 return "Choose an installed starting profile, copy it into this world, and adjust its spawn roles without changing the installed game data.";
+            case 10:
+                return "Create celestial bodies and rocket travel maps for this world.";
             case 9:
                 return "Store reusable terrain and texture files locally, then add copies to this world mod for XML settings to reference.";
             default:
@@ -215,27 +228,19 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Arranges atmosphere, gas reference, temperature, climate and environment controls.</summary>
     private void DrawEnvironmentPageCards()
     {
-        var atmosphereAvailableWidth = PageContentWidth;
-        var atmospherePair = atmosphereAvailableWidth >= 1220f;
-        var atmosphereCardWidth = atmospherePair ? (atmosphereAvailableWidth - CardSpacing) * 0.5f : atmosphereAvailableWidth;
-        if (atmospherePair)
-            GUILayout.BeginHorizontal();
-        GUILayout.BeginVertical(_cardStyle!, GUILayout.Width(atmosphereCardWidth));
+        DrawWorldEnvironmentCard();
+        GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("ATMOSPHERE", _sectionStyle!);
         DrawGasControls();
         GUILayout.EndVertical();
         GUILayout.Space(CardSpacing);
         DrawGasPhaseReference();
-        if (atmospherePair)
-            GUILayout.EndHorizontal();
         GUILayout.Space(CardSpacing);
         DrawTemperatureChart();
         GUILayout.Space(CardSpacing);
         DrawClimatePreview();
         GUILayout.Space(CardSpacing);
         DrawCurveKeyEditor(_project!.AtmosphereFields, "Atmosphere");
-        GUILayout.Space(CardSpacing);
-        DrawWorldEnvironmentCard();
     }
 
     /// <summary>Arranges weather selection, event timing and weather curve controls.</summary>
@@ -268,6 +273,7 @@ public sealed partial class WorldCreatorWindow
             fields = fields.Where(f => !curveParents.Any(parent => f.Label.StartsWith(parent + " / ", StringComparison.Ordinal))).ToList();
         }
 
+        if (_page == 1) fields = fields.Where(field => !field.Label.Contains("/Gas/Gas")).ToList();
         if (_page == 2 && fields.Count > 0)
         {
             DrawWeatherFieldGroups(fields);
@@ -284,7 +290,7 @@ public sealed partial class WorldCreatorWindow
                 .ToList();
         if (_page == 6)
             GUILayout.Label("Showing " + fields.GroupBy(FieldGroupName).Count() + " cards · " + fields.Count + " fields", _mutedStyle!);
-        if (fields.Count == 0 && _page < 8 && _page != 3 && _page != 5 && !weatherFieldsRendered)
+        if (fields.Count == 0 && _page < 8 && _page != 1 && _page != 3 && _page != 5 && !weatherFieldsRendered)
             GUILayout.Label(_page == 6 && search.Length > 0 ? "No cards match this search. Clear or change the search phrase." : "No values are defined for this template in this section.", _mutedStyle!);
         if (!weatherFieldsRendered && fields.Count > 0)
         {
@@ -342,6 +348,8 @@ public sealed partial class WorldCreatorWindow
 
         if (_page == 8 && _project != null)
             DrawStartConditions();
+        if (_page == 10 && _project != null)
+            DrawAssetCreator();
         if (_page == 9 && _project != null)
             DrawAssetLibrary();
         if (_project != null)

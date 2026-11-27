@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -35,7 +35,7 @@ internal sealed partial class WorldProject
     /// <summary>Finds the primary body's configured texture for the orbit preview.</summary>
     internal string? GetPrimaryBodyTexturePath(string id)
     {
-        var sourceDefinition = FindPrimaryBodyDefinition(_sourceXml, id);
+        var sourceDefinition = FindPrimaryBodyDefinition(_world, id) ?? FindPrimaryBodyDefinition(_sourceXml, id);
         var texturePath = (string? )(sourceDefinition ?? FindPrimaryBodyDefinition(_celestialBodyData, id))?.Element("Texture")?.Attribute("Path");
         if (string.IsNullOrWhiteSpace(texturePath) || Path.IsPathRooted(texturePath))
             return texturePath;
@@ -64,6 +64,7 @@ internal sealed partial class WorldProject
     /// <summary>Identifies black-hole primary bodies from their loaded celestial definition.</summary>
     internal bool IsBlackHolePrimary(string id)
     {
+        if (CelestialCatalog.Entries.TryGetValue(id, out var installed) && installed.BlackHole) return true;
         if (id.IndexOf("blackhole", StringComparison.OrdinalIgnoreCase) >= 0 || id.IndexOf("black hole", StringComparison.OrdinalIgnoreCase) >= 0)
             return true;
         var primaryBackdrop = _world.Descendants("PlanetPrefab").Elements("Name").Any(name => string.Equals(name.Value, id, StringComparison.OrdinalIgnoreCase));
@@ -79,7 +80,7 @@ internal sealed partial class WorldProject
     /// <summary>Looks up a celestial definition by ID in the imported world and native body library.</summary>
     private XElement? FindPrimaryBodyDefinition(string id)
     {
-        return FindPrimaryBodyDefinition(_sourceXml, id) ?? FindPrimaryBodyDefinition(_celestialBodyData, id);
+        return FindPrimaryBodyDefinition(_sourceXml, id) ?? (_extraCelestialDefinitions.TryGetValue(id, out var custom) ? custom : null) ?? FindPrimaryBodyDefinition(_celestialBodyData, id);
     }
 
     /// <summary>Looks up a celestial definition by ID in the imported world and native body library.</summary>
@@ -113,30 +114,12 @@ internal sealed partial class WorldProject
             _orbitBody.Add(color);
         }
 
-        foreach (var channel in new[]
-        {
-            (Name: "r", Label: "red", Description: "Red"),
-            (Name: "g", Label: "green", Description: "Green"),
-            (Name: "b", Label: "blue", Description: "Blue")
-        }
-
-        )
-        {
-            var attribute = color.Attribute(channel.Name);
-            if (attribute == null)
-            {
-                color.SetAttributeValue(channel.Name, "1");
-                attribute = color.Attribute(channel.Name)!;
-            }
-
-            var current = attribute;
-            OrbitFields.Add(new Field(
-                "Celestial body/Display color/" + channel.Label,
-                current.Value,
-                value => current.Value = value,
-                tooltip: channel.Description + " channel (0–1) for this body's color in celestial-body views. This is a visual color, not a terrain texture."
-            ));
-        }
+        foreach (var channel in new[] { "r", "g", "b" })
+            if (color.Attribute(channel) == null) color.SetAttributeValue(channel, "1");
+        OrbitFields.Add(new Field(CelestialColourLabel,
+            string.Join(",", new[] { "r", "g", "b" }.Select(channel => color.Attribute(channel)!.Value)),
+            value => WriteCelestialColour(color, value), numeric: false,
+            tooltip: "Red, green and blue from 0 to 1, separated by commas; for example 0.9,0.5,0.3. This changes celestial appearance, not terrain textures."));
 
         var sunrise = _orbitBody.Element("SunriseOffset");
         if (sunrise == null)

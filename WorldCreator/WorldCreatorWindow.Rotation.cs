@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using UnityEngine;
 
@@ -61,6 +61,11 @@ public sealed partial class WorldCreatorWindow
         if (selected >= 0 && selected != _rotationMode) ChangeRotationMode(selected, settings);
         GUILayout.Space(10);
         var tidal = _rotationMode == (int)WorldProject.RotationMode.TidalLocking;
+        if (tidal)
+        {
+            DrawOrbitParentSelector(tidalTarget: true);
+            GUILayout.Space(10);
+        }
         var previousEnabled = GUI.enabled;
         GUI.enabled = previousEnabled && !tidal;
         var value = DrawRotationNumber(tidal ? "Orbit around parent (simulated days)" : _rotationMode == 0 ? "Rotation period (simulated days)" : "Rotation speed (° / simulated day)",
@@ -119,6 +124,9 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Applies validated rotation only at the next Layout boundary to avoid rebuilding controls mid-frame.</summary>
     private void ApplyRotationDraft()
     {
+        ApplyStarAppearance();
+        ApplyNewCelestialBody();
+        ApplyOrbitParentDraft();
         if (!_applyRotationPending) return;
         _applyRotationPending = false;
         try

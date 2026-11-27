@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Globalization;
@@ -13,6 +13,7 @@ public sealed partial class WorldCreatorWindow
     private int _assetCategoryFilter;
     private int _assetTypeFilter = 2;
     private string _assetPath = "";
+    private string _assetFolder = AssetLibrary.ImportFolderPath;
     private string _assetSearch = "";
     private string? _pendingAssetRemoveId;
     private bool _assetLibraryLoaded;
@@ -20,6 +21,13 @@ public sealed partial class WorldCreatorWindow
     private readonly List<LibraryAsset> _assetLibraryItems = new List<LibraryAsset>();
     /// <summary>Arranges import, browse and project-asset cards on the asset-library page.</summary>
     private void DrawAssetLibrary()
+    {
+        EnsureAssetLibraryLoaded();
+        DrawCardColumns(new Func<bool>[] { DrawAssetImportCard, DrawAssetBrowseCard, DrawProjectAssetsCard }, draw => draw(), minimumWidth: 850);
+    }
+
+    /// <summary>Shares a cached library catalogue across the asset tab and all consuming dropdowns.</summary>
+    private void EnsureAssetLibraryLoaded()
     {
         if (!_assetLibraryLoaded)
         {
@@ -37,7 +45,6 @@ public sealed partial class WorldCreatorWindow
             _assetLibraryLoaded = true;
         }
 
-        DrawCardColumns(new Func<bool>[] { DrawAssetImportCard, DrawAssetBrowseCard, DrawProjectAssetsCard }, draw => draw(), minimumWidth: 850);
     }
 
     /// <summary>Collects a source file and category before importing an asset into the reusable library.</summary>
@@ -49,6 +56,9 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Label("Original files are copied into the library and left unchanged.", _mutedStyle!);
         GUILayout.Space(5);
         _assetPath = GUILayout.TextField(_assetPath, _inputStyle!, GUILayout.ExpandWidth(true));
+        GUILayout.Space(8);
+        if (NativeButton("Browse file…", _buttonStyle!, GUILayout.Width(180), GUILayout.Height(32)))
+            BrowseEditorPath(false, "Import asset", _assetPath, "", path => _assetPath = path);
         GUILayout.Label("Enter a full file path. Supported: PNG, JPG, JPEG, DDS, TIF, TIFF, RAW, DATA, DAT.", _mutedStyle!);
         _assetCategorySelection = Mathf.Clamp(_assetCategorySelection, 0, AssetCategories.Length - 1);
         GUILayout.Space(12);
@@ -69,6 +79,29 @@ public sealed partial class WorldCreatorWindow
             }
         }
 
+        GUILayout.Space(20);
+        GUILayout.Label("Drop folder", _sectionStyle!);
+        GUILayout.Label("Drop files here using Explorer, then refresh. Supported files in subfolders are included; originals are left untouched.", _mutedStyle!);
+        _assetFolder = GUILayout.TextField(_assetFolder, _inputStyle!, GUILayout.Height(32));
+        GUILayout.Space(10);
+        GUILayout.BeginHorizontal();
+        if (NativeButton("Choose folder…", _buttonStyle!, GUILayout.Width(180), GUILayout.Height(32)))
+            BrowseEditorPath(true, "Choose asset drop folder", _assetFolder, "", path => { AssetLibrary.SetImportFolder(path); _assetFolder = path; });
+        GUILayout.Space(12);
+        if (NativeButton("Refresh folder", _buttonStyle!, GUILayout.Width(180), GUILayout.Height(32)))
+        {
+            try
+            {
+                AssetLibrary.SetImportFolder(_assetFolder);
+                var result = AssetLibrary.ImportFolder(AssetCategories[_assetCategorySelection]);
+                _assetLibraryLoaded = false;
+                _status = "Imported " + result.Added + "; unchanged " + result.Skipped + "." + (result.Errors.Length == 0 ? "" : " " + string.Join("; ", result.Errors));
+            }
+            catch (Exception error) { _status = error.Message; }
+        }
+        GUILayout.EndHorizontal();
+        GUILayout.Space(10);
+        if (NativeButton("Refresh library", _buttonStyle!, GUILayout.Width(180), GUILayout.Height(32))) _assetLibraryLoaded = false;
         GUILayout.EndVertical();
         return false;
     }

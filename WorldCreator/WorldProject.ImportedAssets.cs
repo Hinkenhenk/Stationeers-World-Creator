@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,7 +34,7 @@ internal sealed partial class WorldProject
     }
 
     /// <summary>Copies only resolved assets inside the source mod, leaving installed game assets as native references.</summary>
-    private static void CopyImportedAssets(IEnumerable<(string Source, string RelativePath)> copies, string temporary)
+    private void CopyImportedAssets(IEnumerable<(string Source, string RelativePath)> copies, string temporary)
     {
         foreach (var copy in copies)
         {
@@ -44,7 +44,11 @@ internal sealed partial class WorldProject
             else
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-                if (!File.Exists(destination)) File.Copy(copy.Source, destination);
+                if (!File.Exists(destination))
+                {
+                    if (_celestialSurfaceData.TryGetValue(copy.Source, out var data)) File.WriteAllBytes(destination, data);
+                    else File.Copy(copy.Source, destination);
+                }
             }
         }
     }

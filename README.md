@@ -41,6 +41,14 @@ Tested with Stationeers **0.2.6429.27802**. Game assemblies are read from your i
 
 Report problems in [Issues](https://github.com/Hinkenhenk/Stationeers-World-Creator/issues), with the mod version and the relevant log or screenshot.
 
+## Asset Creator
+
+Create planets, moons, primary stars, and rocket travel maps. Import an original PNG in **Asset Libraries**, then select it under **Primary Star Appearance** and apply the settings. You can adjust the star's visual diameter, glow and light colour. A native sun prefab supplies the game's lighting and orbital behaviour.
+
+**Playing an exported world with a custom star:** install and enable the world mod and the separate [World Creator Runtime](https://github.com/Hinkenhenk/Stationeers-World-Creator-Runtime) in LaunchPad. The world package includes its texture and declares the dependency. Worlds that use stock sun visuals work without the runtime. To revert an existing custom-star export, choose **Use stock sun**, apply the appearance and update the world mod.
+
+For a rocket map, add destinations and choose each route's parent, coordinates and difficulty. Apply it to the world. You can switch back to an installed map in **Map Studio**. Custom rocket maps use Stationeers' native map format.
+
 ## Map Studio
 
 Paint region masks with a brush or one pixel at a time. Use the mouse wheel over the map to zoom, and hold the wheel button to pan. The pipette selects a region from its mask colour; Ctrl+Z undoes recent map changes.
@@ -63,4 +71,4 @@ Each method has a summary describing its purpose. Keep control flow shallow: pre
 
 Releases are built locally and uploaded as prebuilt packages. GitHub Actions is not used.
 
-For a release, update the version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, build and test, then upload the ZIP and SHA256 checksum to the matching GitHub release. Packages contain our DLL, mod metadata, Workshop artwork and installation notes; game assemblies and extracted game assets are excluded.
+Update the editor version in `WorldCreator/BuildInfo.cs` and `WorldCreator/About/About.xml`, then build and test before packaging its ZIP and SHA256 checksum. [World Creator Runtime](https://github.com/Hinkenhenk/Stationeers-World-Creator-Runtime) has its own source repository and release versions. Packages contain our DLL, mod metadata, Workshop artwork and installation notes; game assemblies and extracted game assets are excluded.

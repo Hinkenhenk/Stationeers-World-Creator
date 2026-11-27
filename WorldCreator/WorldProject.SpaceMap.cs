@@ -17,6 +17,7 @@ internal sealed partial class WorldProject
     {
         AddSpaceMapDefinitions(XDocument.Load(Path.Combine(_assets, "Data", "rocketlocations.xml")).Root);
         AddSpaceMapDefinitions(_sourceXml);
+        RestoreAuthoredSpaceMap();
         if (!string.IsNullOrEmpty(_sourceGameDataRoot) && Directory.Exists(_sourceGameDataRoot))
         {
             foreach (var file in Directory.GetFiles(_sourceGameDataRoot, "*.xml", SearchOption.AllDirectories))
@@ -31,6 +32,15 @@ internal sealed partial class WorldProject
             }
         }
 
+        BindSpaceMapReference();
+        SpaceMapIds = _spaceMapDefinitions.Keys.Concat(new[] { SpaceMapReference.Value }).Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    /// <summary>Rebinds the map selection after other editor controls rebuild the Advanced fields.</summary>
+    private void BindSpaceMapReference()
+    {
+        var previous = SpaceMapReference;
         SpaceMapReference = AdvancedFields.FirstOrDefault(field => field.Label.EndsWith("/SpaceMap/@Id", StringComparison.Ordinal))!;
         if (SpaceMapReference == null)
         {
@@ -54,8 +64,8 @@ internal sealed partial class WorldProject
             AdvancedFields.Add(SpaceMapReference);
         }
 
-        SpaceMapIds = _spaceMapDefinitions.Keys.Concat(new[] { SpaceMapReference.Value }).Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        if (previous != null && previous.Value != previous.Original)
+            SpaceMapReference.Value = previous.Value;
     }
 
     /// <summary>Registers complete space-map definitions while ignoring simple reference-only XML records.</summary>

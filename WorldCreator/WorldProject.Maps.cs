@@ -209,6 +209,7 @@ internal sealed partial class WorldProject
         foreach (var field in AdvancedFields)
             if (field.Target != null && pending.TryGetValue(field.Target, out var value))
                 field.Value = value;
+        if (SpaceMapReference != null) BindSpaceMapReference();
         MapFields.AddRange(AdvancedFields.Where(f => f.Label.IndexOf("/RegionSet", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PointOfInterest", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/PlayableArea", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/GeographicRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinablesRegionData", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/Minables/", StringComparison.Ordinal) >= 0 || f.Label.IndexOf("/DeepMinables/", StringComparison.Ordinal) >= 0));
     }
 }

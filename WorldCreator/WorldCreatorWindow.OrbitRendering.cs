@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -30,26 +30,15 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Refreshes sphere textures and render resources, then renders only when preview inputs changed.</summary>
     private void EnsureOrbitSpherePreviews()
     {
-        RefreshPrimaryBodyTexture();
-        RefreshPlayableBodyTexture();
-        if (_orbitPrimarySurfaceTexture == null)
-            _orbitPrimarySurfaceTexture = CreateSunTexture();
-        if (_orbitSunRenderTexture == null)
-            _orbitSunRenderTexture = CreateOrbitRenderTexture("World Creator sun sphere");
-        if (_orbitPlanetRenderTexture == null)
-            _orbitPlanetRenderTexture = CreateOrbitRenderTexture("World Creator planet sphere");
-        if (_orbitSphereCamera == null)
-        {
-            CreateOrbitSphereScene();
-        }
+        PrepareOrbitSphereResources();
 
         if (_orbitSphereCamera == null || _orbitSphereObject == null || _orbitSphereRenderer == null || _orbitSphereMaterial == null)
             return;
         Quaternion bodyRotation;
         try { bodyRotation = BodyRotationAtPhase(_orbitPhase); }
         catch (InvalidOperationException) { bodyRotation = Quaternion.identity; }
-        var viewRotation = _orbitGlobeRotation;
-        var sphereRotation = viewRotation * (_orbitView == 3 ? Quaternion.identity : bodyRotation);
+        var viewRotation = OrbitCameraRotation(_orbitView, _orbitGlobeRotation);
+        var sphereRotation = viewRotation * (_orbitView == 3 ? _orbitFrameAxisOrientation : bodyRotation);
         var sourceDirection = CurrentPrimaryLightDirection();
         if (_orbitView == 3)
         {
@@ -71,8 +60,7 @@ public sealed partial class WorldCreatorWindow
         try
         {
             _orbitSphereRenderer.enabled = true;
-            RenderOrbitSphere(_orbitPrimarySurfaceTexture!, _orbitSunRenderTexture!, emissive: _orbitPrimaryIsBlackHole || _orbitPrimaryIsStar);
-            RenderOrbitSphere(_orbitPlanetSurfaceTexture!, _orbitPlanetRenderTexture!, emissive: false);
+            RenderIsolatedOrbitSpheres();
         }
         finally
         {
@@ -82,6 +70,17 @@ public sealed partial class WorldCreatorWindow
         _orbitSphereRenderedRotation = sphereRotation;
         _orbitRenderedLightDirectionView = _orbitLightDirectionView;
         _orbitSphereTexturesDirty = false;
+    }
+
+    /// <summary>Shares textures, sphere, light and camera between the orbital scene and close-up landing globe.</summary>
+    private void PrepareOrbitSphereResources()
+    {
+        RefreshPrimaryBodyTexture();
+        RefreshPlayableBodyTexture();
+        if (_orbitPrimarySurfaceTexture == null) _orbitPrimarySurfaceTexture = CreateSunTexture();
+        if (_orbitSunRenderTexture == null) _orbitSunRenderTexture = CreateOrbitRenderTexture("World Creator sun sphere");
+        if (_orbitPlanetRenderTexture == null) _orbitPlanetRenderTexture = CreateOrbitRenderTexture("World Creator planet sphere");
+        if (_orbitSphereCamera == null) CreateOrbitSphereScene();
     }
 
     /// <summary>Resolves and caches the loaded world surface image from local, workshop or game assets.</summary>
@@ -122,6 +121,8 @@ public sealed partial class WorldCreatorWindow
         var camera = _orbitSphereCamera!;
         var originalShader = material.shader;
         var originalTarget = camera.targetTexture;
+        var originalAspect = camera.aspect;
+        var originalActive = RenderTexture.active;
         try
         {
             if (emissive)
@@ -141,11 +142,16 @@ public sealed partial class WorldCreatorWindow
             else
                 material.DisableKeyword("_EMISSION");
             camera.targetTexture = target;
+            // The same camera also renders the wide orbit chart; never inherit that aspect for the square globe.
+            camera.aspect = (float)target.width / target.height;
+            Debug.Assert(Mathf.Abs(camera.aspect - 1f) < .0001f, "Landing globe must use a square camera projection.");
             camera.Render();
         }
         finally
         {
             camera.targetTexture = originalTarget;
+            camera.aspect = originalAspect;
+            RenderTexture.active = originalActive;
             material.shader = originalShader;
         }
     }
@@ -288,18 +294,22 @@ public sealed partial class WorldCreatorWindow
         return texture;
     }
 
+    private byte[]? _orbitPrimaryCustomTextureData;
+
     /// <summary>Reloads the primary texture and appearance flags when its ID or source path changes.</summary>
     private void RefreshPrimaryBodyTexture()
     {
-        var primaryId = _project?.PrimaryBodyId ?? "Sun";
+        var primaryId = _project?.GetRotationSettings().ParentId ?? "Sun";
+        var customTexture = _project?.GetCustomStarTexture(primaryId);
         var primaryTexturePath = _project?.GetPrimaryBodyTexturePath(primaryId);
-        var primaryIsBlackHole = _project?.IsBlackHolePrimary(primaryId) ?? false;
-        var primaryIsStar = !primaryIsBlackHole && (_project?.IsStarPrimary(primaryId) ?? false);
-        if (!string.Equals(primaryId, _orbitPrimaryBodyIdRendered, StringComparison.Ordinal) || !string.Equals(primaryTexturePath, _orbitPrimaryTexturePath, StringComparison.OrdinalIgnoreCase))
+        var primaryIsBlackHole = customTexture == null && (_project?.IsBlackHolePrimary(primaryId) ?? false);
+        var primaryIsStar = !primaryIsBlackHole && (customTexture != null || (_project?.IsStarPrimary(primaryId) ?? false));
+        if (!ReferenceEquals(customTexture, _orbitPrimaryCustomTextureData) || !string.Equals(primaryId, _orbitPrimaryBodyIdRendered, StringComparison.Ordinal) || !string.Equals(primaryTexturePath, _orbitPrimaryTexturePath, StringComparison.OrdinalIgnoreCase))
         {
             if (_orbitPrimarySurfaceTexture != null)
                 Destroy(_orbitPrimarySurfaceTexture);
-            var primaryData = LoadOrbitTextureFile(primaryTexturePath);
+            var primaryData = customTexture == null ? LoadOrbitTextureFile(primaryTexturePath) : LoadOrbitTexture(customTexture);
+            _orbitPrimaryCustomTextureData = customTexture;
             _orbitPrimarySurfaceTexture = primaryData ?? (primaryIsBlackHole ? CreateBlackHoleTexture() : primaryIsStar ? CreateSunTexture() : CreatePrimaryBodyTexture(_project?.GetPrimaryBodyColor(primaryId)));
             _orbitPrimaryBodyIdRendered = primaryId;
             _orbitPrimaryTexturePath = primaryTexturePath;
@@ -339,6 +349,7 @@ public sealed partial class WorldCreatorWindow
         _orbitSphereCamera.backgroundColor = new Color(0, 0, 0, 0);
         _orbitSphereCamera.orthographic = true;
         _orbitSphereCamera.orthographicSize = 1.08f;
+        _orbitSphereCamera.renderingPath = RenderingPath.Forward;
         _orbitSphereCamera.nearClipPlane = .1f;
         _orbitSphereCamera.farClipPlane = 10f;
         _orbitSphereCamera.cullingMask = 1 << 31;
@@ -354,6 +365,10 @@ public sealed partial class WorldCreatorWindow
         if (collider != null)
             Destroy(collider);
         _orbitSphereRenderer = _orbitSphereObject.GetComponent<MeshRenderer>();
+        _orbitSphereRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+        _orbitSphereRenderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+        _orbitSphereRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        _orbitSphereRenderer.receiveShadows = false;
         _orbitSphereRenderer.enabled = false;
         var shader = Shader.Find("Standard");
         if (shader == null)

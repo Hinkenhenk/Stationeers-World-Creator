@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
@@ -223,26 +223,6 @@ public sealed partial class WorldCreatorWindow
         {
             _status = "Could not save map mask: " + e.Message;
             Debug.LogWarning("[World Creator] Could not export map mask PNG: " + e);
-        }
-    }
-
-    /// <summary>Loads reusable map assets once and retains a readable error if loading fails.</summary>
-    private void EnsureAssetLibraryLoaded()
-    {
-        if (!_assetLibraryLoaded)
-        {
-            try
-            {
-                _assetLibraryItems.Clear();
-                _assetLibraryItems.AddRange(AssetLibrary.Load());
-                _assetLibraryError = null;
-            }
-            catch (Exception e)
-            {
-                _assetLibraryError = e.Message;
-            }
-
-            _assetLibraryLoaded = true;
         }
     }
 

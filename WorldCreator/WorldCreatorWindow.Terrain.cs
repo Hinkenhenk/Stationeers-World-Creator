@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Globalization;
 using System.Linq;
@@ -55,13 +55,8 @@ public sealed partial class WorldCreatorWindow
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         GUILayout.Space(10);
-        GUILayout.Label("File path", _mutedStyle!);
-        GUILayout.BeginHorizontal();
-        _terrainPath = GUILayout.TextField(_terrainPath);
-        GUILayout.Space(10);
-        if (NativeButton("Browse…", _buttonStyle!, GUILayout.Width(110), GUILayout.Height(32)))
-            BrowseTerrainPath(false);
-        GUILayout.EndHorizontal();
+        GUILayout.Label("Source from Asset Libraries", _mutedStyle!);
+        _terrainPath = DrawLibraryAssetDropdown("terrain-source-asset", _terrainPath, _terrainKind == "Heightmap", "Select a library source");
         GUILayout.Space(10);
         GUILayout.Label("Type: Heightmap (.raw/.data), Crust (.png), Cracks (.png), or Lava (.png). Heightmap must match this template's terrain size.");
         GUILayout.Space(10);

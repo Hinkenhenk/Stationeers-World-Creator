@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,7 +27,7 @@ internal sealed class LibraryAsset
     }
 }
 
-internal static class AssetLibrary
+internal static partial class AssetLibrary
 {
     internal static string DirectoryPath => Environment.GetEnvironmentVariable("WORLD_CREATOR_ASSET_LIBRARY") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Stationeers", "WorldCreator", "AssetLibrary");
     private static string MetadataPath => Path.Combine(DirectoryPath, "Library.xml");

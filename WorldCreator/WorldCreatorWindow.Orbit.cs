@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
@@ -11,7 +11,9 @@ public sealed partial class WorldCreatorWindow
     private float _orbitPhase = 45f;
     private float _orbitZoom = 1f;
     private Quaternion _orbitGlobeRotation = DefaultOrbitRotation();
+    private Quaternion _orbitFrameAxisOrientation = Quaternion.identity;
     private float _orbitSimulationSpeed = 1f;
+    private float _landingSimulationSpeed = 1f;
     private bool _orbitSimulationPlaying;
     private bool _orbitDragging;
     private Vector2 _orbitDragPosition;
@@ -26,16 +28,22 @@ public sealed partial class WorldCreatorWindow
     private void DrawOrbitPreview()
     {
         _orbitFrameRotation = _project!.GetRotationSettings();
+        try
+        {
+            var axis = _orbitFrameRotation.NormalizedAxis;
+            _orbitFrameAxisOrientation = Quaternion.FromToRotation(Vector3.up, new Vector3((float)axis.X, (float)axis.Y, (float)axis.Z));
+        }
+        catch (InvalidOperationException) { _orbitFrameAxisOrientation = Quaternion.identity; }
         var distance = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / SemiMajorAxisAu") || f.Label.EndsWith(" / SemiMajorAxisKm"));
         var eccentricity = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / Eccentricity"));
-        if (distance == null || eccentricity == null || !double.TryParse(distance.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var a) || !double.TryParse(eccentricity.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var e) || double.IsNaN(a) || double.IsInfinity(a) || double.IsNaN(e) || double.IsInfinity(e) || a <= 0 || e < 0 || e >= 1)
-            return;
+        var validOrbit = OrbitPreviewFraming.TryReadOrbit(distance?.Value, eccentricity?.Value, out var a, out var e);
         var sideBySide = UnityEngine.Screen.width >= 1400;
         if (sideBySide)
             GUILayout.BeginHorizontal();
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
-        var unit = distance.Label.EndsWith("Au") ? "AU" : "km";
-        DrawOrbitDistanceSummary(distance, a, e);
+        var unit = distance?.Label.EndsWith("Au") == true ? "AU" : "km";
+        if (validOrbit) DrawOrbitDistanceSummary(distance!, a, e);
+        else GUILayout.Label("The preview needs a positive orbital distance and an orbit shape from 0 to below 1. You can keep editing the controls.", _mutedStyle!);
         DrawOrbitCameraControls();
         // Keep the orbit map large while placing editable values alongside it on wide displays.
         var chartHeight = Mathf.Clamp(UnityEngine.Screen.height * 0.38f, 240f, 560f);
@@ -43,10 +51,23 @@ public sealed partial class WorldCreatorWindow
         GUI.Box(chart, "");
         GUI.BeginGroup(chart);
         var localChart = new Rect(0, 0, chart.width, chart.height);
+        var landingPointHidden = false;
+        var radius = 0d;
+        try
+        {
+            if (!validOrbit)
+                GUI.Label(localChart, "Complete the orbital distance and shape values to resume the preview.", _mutedStyle!);
+            else if (_orbitView == 3)
+                landingPointHidden = DrawLandingSiteSurface(localChart, WorldAngle("Latitude"), WorldAngle("Longitude"));
+            else
+                radius = DrawOrbitalSystemChart(chart, a, e);
+        }
+        finally
+        {
+            GUI.EndGroup();
+        }
         if (_orbitView == 3)
         {
-            var landingPointHidden = DrawLandingSiteSurface(localChart, WorldAngle("Latitude"), WorldAngle("Longitude"));
-            GUI.EndGroup();
             if (landingPointHidden)
                 GUILayout.Label("The selected landing point is on the far side; drag the globe to bring it into view.", _mutedStyle!);
             GUILayout.Label(
@@ -56,9 +77,7 @@ public sealed partial class WorldCreatorWindow
         }
         else
         {
-            var radius = DrawOrbitalSystemChart(chart, a, e);
-            GUI.EndGroup();
-            GUILayout.Label("Primary body  ·  playable body  ·  Current distance " + radius.ToString("0.###", CultureInfo.InvariantCulture) + " " + unit, _mutedStyle!);
+            GUILayout.Label("Primary body  ·  playable body  ·  Current distance " + (validOrbit ? radius.ToString("0.###", CultureInfo.InvariantCulture) + " " + unit : "—"), _mutedStyle!);
             GUILayout.Label(
                 "Illustrative projection from the configured orbital elements; phase and camera controls do not change world XML. Confirm runtime timing and coordinate conventions in game.",
                 _mutedStyle!
@@ -78,24 +97,17 @@ public sealed partial class WorldCreatorWindow
             GUILayout.EndHorizontal();
     }
 
-    /// <summary>Places a rendered primary or playable sphere texture on the orbital chart.</summary>
-    private void DrawOrbitSphere(Vector2 center, float size, bool sun)
-    {
-        EnsureOrbitSpherePreviews();
-        var texture = sun ? _orbitSunRenderTexture : _orbitPlanetRenderTexture;
-        if (texture != null)
-            GUI.DrawTexture(new Rect(center.x - size / 2f, center.y - size / 2f, size, size), texture, ScaleMode.ScaleToFit, true);
-    }
-
     /// <summary>Groups orbital elements, landing coordinates and body-rotation controls.</summary>
     private void DrawOrbitSettings()
     {
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("ORBITAL ELEMENTS", _sectionStyle!);
+        DrawOrbitParentSelector();
         foreach (var field in _project!.OrbitFields.Where(field => !field.Label.StartsWith("Celestial body/", StringComparison.Ordinal)))
             DrawOrbitField(field);
         GUILayout.EndVertical();
         DrawRotationSettings();
+        if (NativeButton("Open Asset Creator", _buttonStyle!, GUILayout.Height(32))) _pendingPage = 10;
         GUILayout.Space(CardSpacing);
         GUILayout.BeginVertical(_cardStyle!, GUILayout.ExpandWidth(true));
         GUILayout.Label("CELESTIAL BODY", _sectionStyle!);
@@ -117,7 +129,9 @@ public sealed partial class WorldCreatorWindow
         var content = new GUIContent(ReadableFieldLabel(field.Label, false) + "  ⓘ", field.Tooltip);
         GUILayout.Label(content, _mutedStyle!);
         RegisterHoverTooltip(GUILayoutUtility.GetLastRect(), field.Tooltip);
-        if (field.IsBoolean)
+        if (field.Label == WorldProject.CelestialColourLabel)
+            DrawCelestialColourInput(field);
+        else if (field.IsBoolean)
             field.Value = GUILayout.Toggle(bool.TryParse(field.Value, out var current) && current, new GUIContent("Enabled", field.Tooltip)) ? "true" : "false";
         else
         {
@@ -141,33 +155,6 @@ public sealed partial class WorldCreatorWindow
         GUILayout.EndVertical();
     }
 
-    /// <summary>Draws the shared XYZ reference axes in the current orbital view.</summary>
-    private void DrawOrbitAxisTriad(Vector2 center, float scale)
-    {
-        var length = Mathf.Min(0.7f * scale, 84f);
-        /// <summary>Projects a reference-axis direction through the preview rotation into chart pixels.</summary>
-        Vector2 ProjectAxis(double x, double y, double z)
-        {
-            var view = _orbitGlobeRotation * new Vector3((float)x, (float)y, (float)z);
-            return new Vector2(view.x * length, -view.y * length);
-        }
-
-        var origin = center;
-        /// <summary>Draws one labelled reference axis with its coloured line and endpoint marker.</summary>
-        void Axis(double x, double y, double z, string label, Color color)
-        {
-            var delta = ProjectAxis(x, y, z);
-            var end = origin + delta;
-            DrawOrbitLine(origin, end, color, 2f);
-            DrawOrbitMarker(end, 5f, color);
-            GUI.Label(new Rect(end.x + 3, end.y - 9, 20, 18), label, _mutedStyle!);
-        }
-
-        Axis(1, 0, 0, "X", new Color(.95f, .38f, .38f));
-        Axis(0, 1, 0, "Y", new Color(.35f, .58f, 1f));
-        Axis(0, 0, 1, "Z", new Color(.38f, .83f, .51f));
-    }
-
     /// <summary>Reads a draft landing coordinate without changing the stored XML.</summary>
     private double WorldAngle(string suffix)
     {
@@ -187,9 +174,7 @@ public sealed partial class WorldCreatorWindow
             GUI.DrawTexture(new Rect(center.x - radius, center.y - radius, radius * 2, radius * 2), _orbitPlanetRenderTexture, ScaleMode.StretchToFill, true);
         var surfaceRadius = radius * (0.9f / 1.08f);
         var lightScreenDirection = new Vector2(_orbitLightDirectionView.x, -_orbitLightDirectionView.y);
-        var lightMarker = center + lightScreenDirection * (surfaceRadius + 15f);
-        DrawOrbitLine(center + lightScreenDirection * (surfaceRadius * .88f), lightMarker, new Color(1f, .76f, .28f, .8f), 2f);
-        DrawOrbitMarker(lightMarker, 9f, new Color(1f, .76f, .28f));
+        DrawOrbitPin(center, lightScreenDirection, surfaceRadius, new Color(1f, .76f, .28f));
         var dim = new Color(.72f, .84f, .87f, .48f);
         for (var meridian = -150; meridian <= 180; meridian += 30)
             DrawGlobeMeridian(center, surfaceRadius, meridian, dim, 1f);
@@ -200,11 +185,19 @@ public sealed partial class WorldCreatorWindow
         var marker = ProjectGlobePoint(latitude, longitude, center, surfaceRadius);
         if (marker.Depth <= 0)
         {
-            DrawOrbitMarker(marker.Point, 9f, new Color(1f, .2f, .24f));
+            DrawOrbitPin(center, (marker.Point - center) / surfaceRadius, surfaceRadius, new Color(1f, .2f, .24f));
             return false;
         }
 
         return true;
+    }
+
+    /// <summary>Draws matching solar and landing-site pins with a short stem and a coloured square head.</summary>
+    private static void DrawOrbitPin(Vector2 center, Vector2 direction, float radius, Color colour)
+    {
+        var head = center + direction * (radius + 15f);
+        DrawOrbitLine(center + direction * (radius * .88f), head, new Color(colour.r, colour.g, colour.b, .8f), 2f);
+        DrawOrbitMarker(head, 9f, colour);
     }
 
     /// <summary>Draws the visible part of one longitude line on the rotated globe.</summary>
@@ -252,15 +245,15 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Projects a surface coordinate into chart pixels and retains depth for visibility checks.</summary>
     private (Vector2 Point, double Depth) ProjectGlobePoint(double latitude, double longitude, Vector2 center, float radius)
     {
-        var point = WorldProject.RotationSiteNormal(_orbitFrameRotation!, latitude, longitude);
-        var rotated = _orbitGlobeRotation * new Vector3((float)point.X, (float)point.Y, (float)point.Z);
+        var point = WorldProject.GeographicSurfaceNormal(latitude, longitude);
+        var rotated = _orbitGlobeRotation * (_orbitFrameAxisOrientation * new Vector3((float)point.X, (float)point.Y, (float)point.Z));
         return (new Vector2(center.x + rotated.x * radius, center.y - rotated.y * radius), rotated.z);
     }
 
     /// <summary>Defines the initial viewing orientation shared by the orbital and landing previews.</summary>
     private static Quaternion DefaultOrbitRotation()
     {
-        return Quaternion.AngleAxis(28f, Vector3.right) * Quaternion.AngleAxis(35f, Vector3.up);
+        return Quaternion.AngleAxis(-28f, Vector3.right) * Quaternion.AngleAxis(35f, Vector3.up);
     }
 
     /// <summary>Applies mouse dragging to the shared globe orientation while retaining control capture.</summary>
@@ -350,19 +343,9 @@ public sealed partial class WorldCreatorWindow
         return new Vector3((float)orbitX, (float)orbitY, (float)orbitZ);
     }
 
-    /// <summary>Projects an orbital position into the chosen overhead, side or rotated view.</summary>
-    private static Vector2 ProjectOrbitPoint(double eccentricAnomaly, double eccentricity, double inclination, double node, double periapsis, int view, Quaternion viewRotation)
-    {
-        var orbit = CalculateOrbitPosition(eccentricAnomaly, eccentricity, inclination, node, periapsis);
-        // Stationeers' preview uses Unity axes: X/Z is the orbital plane and
-        // Y is its normal. Above therefore shows the full orbit; Side shows tilt.
-        if (view == 0)
-            return new Vector2(orbit.x, orbit.y);
-        if (view == 1)
-            return new Vector2(orbit.x, orbit.z);
-        var rotated = viewRotation * new Vector3(orbit.x, orbit.z, orbit.y);
-        return new Vector2(rotated.x, rotated.y);
-    }
+    /// <summary>Shares the preset camera orientation between orbit positions, depth, rendered bodies and sunlight.</summary>
+    private static Quaternion OrbitCameraRotation(int view, Quaternion dragRotation) =>
+        view == 0 ? Quaternion.AngleAxis(-90f, Vector3.right) : view == 1 ? Quaternion.identity : dragRotation;
 
     /// <summary>Draws a coloured square marker centred on an orbital chart position.</summary>
     private static void DrawOrbitMarker(Vector2 point, float size, Color color)
@@ -373,34 +356,28 @@ public sealed partial class WorldCreatorWindow
         GUI.color = previous;
     }
 
-    /// <summary>Draws a thick line segment without leaking GUI rotation or colour state.</summary>
+    /// <summary>Draws chart lines as pixel runs so nested scroll clipping cannot rotate or displace the orbit path.</summary>
     private static void DrawOrbitLine(Vector2 from, Vector2 to, Color color, float thickness)
     {
+        if (Event.current.type != EventType.Repaint) return;
         var delta = to - from;
         if (delta.sqrMagnitude < 0.01f)
             return;
-        if (Mathf.Abs(delta.x) < .01f || Mathf.Abs(delta.y) < .01f)
-        {
-            var previous = GUI.color;
-            GUI.color = color;
-            // Avoid rotating axis lines: rotation also transforms Unity's parent scroll clipping.
-            GUI.DrawTexture(new Rect(Mathf.Min(from.x, to.x) - thickness / 2f,
-                Mathf.Min(from.y, to.y) - thickness / 2f,
-                Mathf.Max(thickness, Mathf.Abs(delta.x)), Mathf.Max(thickness, Mathf.Abs(delta.y))), Texture2D.whiteTexture);
-            GUI.color = previous;
-            return;
-        }
-        var previousMatrix = GUI.matrix;
+        var origin = Vector2.Min(from, to);
+        var width = Mathf.CeilToInt(Mathf.Abs(delta.x)) + 1;
+        var height = Mathf.CeilToInt(Mathf.Abs(delta.y)) + 1;
         var previousColor = GUI.color;
         try
         {
             GUI.color = color;
-            GUIUtility.RotateAroundPivot(Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg, from);
-            GUI.DrawTexture(new Rect(from.x, from.y - thickness / 2f, delta.magnitude, thickness), Texture2D.whiteTexture);
+            foreach (var run in MapOutlineDrawing.Runs(from.x - origin.x, from.y - origin.y,
+                to.x - origin.x, to.y - origin.y, width, height))
+                GUI.DrawTexture(new Rect(origin.x + run.X - (thickness - 1) / 2f,
+                    origin.y + run.Y - (thickness - 1) / 2f,
+                    run.Width + thickness - 1, run.Height + thickness - 1), Texture2D.whiteTexture);
         }
         finally
         {
-            GUI.matrix = previousMatrix;
             GUI.color = previousColor;
         }
     }
@@ -415,7 +392,7 @@ public sealed partial class WorldCreatorWindow
         var period = _project!.OrbitFields.FirstOrDefault(f => f.Label.EndsWith(" / Period"));
         if (period != null && double.TryParse(period.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var days) && !double.IsNaN(days) && !double.IsInfinity(days))
             GUILayout.Label("Orbital period: " + days.ToString("0.###", CultureInfo.InvariantCulture) + " simulated days");
-        if (unit == "AU")
+        if (unit == "AU" && _project.IsStarPrimary(_project.GetRotationSettings().ParentId))
         {
             var farSunlight = 1367 / Math.Pow(apoapsis, 2);
             var nearSunlight = 1367 / Math.Pow(periapsis, 2);
@@ -439,6 +416,7 @@ public sealed partial class WorldCreatorWindow
         GUILayout.Space(10);
         if (NativeButton("Reset view", _buttonStyle!, GUILayout.Width(150), GUILayout.Height(32)))
         {
+            _orbitSystemError = null;
             _orbitZoom = 1f;
             _orbitGlobeRotation = DefaultOrbitRotation();
         }
@@ -447,19 +425,16 @@ public sealed partial class WorldCreatorWindow
         GUILayout.BeginHorizontal();
         if (NativeButton(_orbitSimulationPlaying ? "Pause preview" : "▶ Simulate", _primaryButtonStyle!, GUILayout.Width(150)))
             _orbitSimulationPlaying = !_orbitSimulationPlaying;
-        GUILayout.Label("Simulation speed · 1× = 1 orbit/min", _mutedStyle!, GUILayout.Width(230));
-        var speedOptions = new[]
+        GUILayout.Label(_orbitView == 3 ? "1× = 1 body rotation/min" : "1× = 1 orbit/min", _mutedStyle!, GUILayout.Width(230));
+        var speeds = new[] { .1f, .25f, .5f, 1f, 10f };
+        var selectedSpeed = _orbitView == 3 ? _landingSimulationSpeed : _orbitSimulationSpeed;
+        var speedIndex = Mathf.Max(0, Array.IndexOf(speeds, selectedSpeed));
+        var nextSpeed = NativeDropdown("orbit-preview-speed", speedIndex, new[] { "0.1×", "0.25×", "0.5×", "1×", "10×" }, _buttonStyle!, GUILayout.Width(150));
+        if (nextSpeed >= 0 && nextSpeed < speeds.Length)
         {
-            "1×",
-            "10×"
-        };
-        var speedIndex = Mathf.Clamp(Array.IndexOf(new[] { 1f, 10f }, _orbitSimulationSpeed), 0, 1);
-        var selectedSpeed = NativeSelectionGrid(speedIndex, speedOptions, 2, _buttonStyle!, GUILayout.Width(125));
-        _orbitSimulationSpeed = new[]
-        {
-            1f,
-            10f
-        }[Mathf.Clamp(selectedSpeed, 0, 1)];
+            if (_orbitView == 3) _landingSimulationSpeed = speeds[nextSpeed];
+            else _orbitSimulationSpeed = speeds[nextSpeed];
+        }
         GUILayout.FlexibleSpace();
         GUILayout.EndHorizontal();
         if (_orbitView == 3)
@@ -474,43 +449,4 @@ public sealed partial class WorldCreatorWindow
         }
     }
 
-    /// <summary>Draws the orbit path, reference axes and bodies, returning the current orbital distance.</summary>
-    private double DrawOrbitalSystemChart(Rect chart, double a, double e)
-    {
-        var inclination = OrbitAngle("Inclination");
-        var node = OrbitAngle("LongitudeOfAscendingNode");
-        var periapsisAngle = OrbitAngle("ArgumentOfPeriapsis");
-        var points = new Vector2[121];
-        var maxExtent = 1d;
-        for (var i = 0; i < points.Length; i++)
-        {
-            var eccentricAnomaly = i * Math.PI * 2 / (points.Length - 1);
-            points[i] = ProjectOrbitPoint(eccentricAnomaly, e, inclination, node, periapsisAngle, _orbitView, _orbitGlobeRotation);
-            maxExtent = Math.Max(maxExtent, Math.Max(Math.Abs(points[i].x), Math.Abs(points[i].y)));
-        }
-
-        var margin = 22f;
-        var scale = Mathf.Min((chart.width - margin * 2) / (float)(maxExtent * 2), (chart.height - margin * 2) / (float)(maxExtent * 2)) * _orbitZoom;
-        var center = new Vector2(chart.width / 2f, chart.height / 2f);
-        /// <summary>Converts projected orbit coordinates into pixels inside the chart.</summary>
-        Vector2 ToChartPosition(Vector2 p) => new Vector2(center.x + p.x * scale, center.y - p.y * scale);
-        for (var i = 1; i < points.Length; i++)
-            DrawOrbitLine(ToChartPosition(points[i - 1]), ToChartPosition(points[i]), MenuBlue, 2f);
-        var origin = ToChartPosition(Vector2.zero);
-        if (_orbitView == 2)
-            DrawOrbitAxisTriad(center, scale);
-        else
-        {
-            DrawOrbitLine(new Vector2(margin, center.y), new Vector2(chart.width - margin, center.y), new Color(.42f, .42f, .46f, .5f), 1f);
-            DrawOrbitLine(new Vector2(center.x, margin), new Vector2(center.x, chart.height - margin), new Color(.42f, .42f, .46f, .5f), 1f);
-        }
-
-        DrawOrbitSphere(origin, 30f * _orbitZoom, sun: true);
-        var meanAnomaly = _orbitPhase * Math.PI / 180d;
-        var eccentricAnomalyAtPhase = SolveEccentricAnomaly(meanAnomaly, e);
-        var playable = ToChartPosition(ProjectOrbitPoint(eccentricAnomalyAtPhase, e, inclination, node, periapsisAngle, _orbitView, _orbitGlobeRotation));
-        DrawOrbitSphere(playable, 19f * _orbitZoom, sun: false);
-        var radius = a * (1 - e * Math.Cos(eccentricAnomalyAtPhase));
-        return radius;
-    }
 }

@@ -41,6 +41,16 @@ internal sealed partial class WorldProject
         return RotateRotationVector((0, Math.Sin(radians), Math.Cos(radians)), rotation.NormalizedAxis, -(longitude % 360));
     }
 
+    /// <summary>Builds an undistorted geographic grid in the globe's local frame before one shared axis/view rotation.</summary>
+    internal static (double X, double Y, double Z) GeographicSurfaceNormal(double latitude, double longitude)
+    {
+        if (!FiniteRotation(latitude) || latitude < -90 || latitude > 90 || !FiniteRotation(longitude) || Math.Abs(longitude) > float.MaxValue)
+            throw new InvalidOperationException("Latitude must be −90–90° and longitude must be finite and within the game's numeric range.");
+        var lat = latitude * Math.PI / 180;
+        var lon = (longitude % 360) * Math.PI / 180;
+        return (-Math.Cos(lat) * Math.Sin(lon), Math.Sin(lat), Math.Cos(lat) * Math.Cos(lon));
+    }
+
     /// <summary>Applies the native right-handed axis rotation without depending on Unity's native quaternion calls.</summary>
     private static (double X, double Y, double Z) RotateRotationVector((double X, double Y, double Z) value, (double X, double Y, double Z) axis, double degrees)
     {

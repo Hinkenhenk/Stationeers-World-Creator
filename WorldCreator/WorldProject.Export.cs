@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -30,14 +30,18 @@ internal sealed partial class WorldProject
         var changedOrbit = _orbitBody != null && (_hasImportedOrbitBody || _rotationChanged || OrbitFields.Any(f => f.Value != f.Original));
         RewriteExportOrbitReferences(worldOutput, id, changedOrbit);
         var data = CreateExportData(worldOutput, id, changedWeather, changedOrbit, weatherCopies);
+        AddExportCelestialDefinitions(data, id);
+        AddExportSpaceMap(data, id);
         PrepareTextureReplacements(data, id);
         RepairMissingTemplateAssetPaths(worldOutput, id);
         var importedAssets = PrepareImportedAssetPaths(data, id);
+        importedAssets.AddRange(PrepareCelestialAssetPaths(data, id));
         var temporary = Path.Combine(modsDirectory, ".WorldCreator_" + Guid.NewGuid().ToString("N"));
         try
         {
             WriteModMetadata(temporary, id, displayName);
             if (updateExisting) PreserveExportMetadata(target, temporary, displayName);
+            WriteCustomStar(temporary, worldOutput);
             WriteRuntimeLavaMap(worldOutput, temporary, id);
             new XDocument(data).Save(Path.Combine(temporary, "GameData", "world.xml"));
             WriteExportLanguage(temporary, weatherNames);
@@ -373,6 +377,8 @@ internal sealed partial class WorldProject
         lines.Add("  Custom start conditions: " + _customStartConditions.Count.ToString(CultureInfo.InvariantCulture));
         lines.Add("  Custom spawn definitions: " + _customSpawnDefinitions.Count.ToString(CultureInfo.InvariantCulture));
         lines.Add("  Edited map masks: " + editedMapCount.ToString(CultureInfo.InvariantCulture));
+        if (File.Exists(Path.Combine(folder, "GameData", StarConfigName)))
+            lines.Add("  Custom star: enable World Creator Runtime in LaunchPad to play this world.");
         lines.Add("  Custom orbit body: " + (customOrbit ? "yes" : "no"));
         lines.Add("  Reusable project assets: " + ProjectAssets.Count.ToString(CultureInfo.InvariantCulture));
         var warnings = new List<string>();

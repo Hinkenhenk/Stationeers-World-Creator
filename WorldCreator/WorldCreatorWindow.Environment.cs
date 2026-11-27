@@ -1,4 +1,4 @@
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System;
@@ -203,9 +203,17 @@ public sealed partial class WorldCreatorWindow
             GUILayout.Space(6);
             var quantity = mixture.FirstOrDefault(item => item.Id == gas.Id).Quantity;
             var share = total > 0 ? (100 * quantity / total).ToString("0.0", CultureInfo.InvariantCulture) + "%  ·  " : "";
-            GUILayout.Label(gas.Name + "  " + share + field.Value + " mol", _mutedStyle!);
+            GUILayout.Label(gas.Name, _mutedStyle!, GUILayout.Width(210), GUILayout.Height(32));
+            GUILayout.Space(12);
+            field.Value = MaskNumericInput(GUILayout.TextField(field.Value, _inputStyle!, GUILayout.Width(130), GUILayout.Height(32)));
+            GUILayout.Space(8);
+            GUILayout.Label("mol", _mutedStyle!, GUILayout.Width(35), GUILayout.Height(32));
+            GUILayout.Space(12);
             if (NativeButton("Remove gas", _buttonStyle!, GUILayout.Width(140), GUILayout.Height(32)))
                 removeGas = gas.Id;
+            GUILayout.Space(12);
+            GUILayout.Label(share, _mutedStyle!, GUILayout.Width(90), GUILayout.Height(32));
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
         }

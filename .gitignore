@@ -22,3 +22,6 @@
 *.user
 *.suo
 *.log
+
+# The runtime is maintained as its own Git repository.
+/WorldCreator.Runtime/

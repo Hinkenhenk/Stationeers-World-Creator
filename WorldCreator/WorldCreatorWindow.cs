@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,6 +30,8 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
         "Vulcan/VulcanV2.xml"
     };
     private static readonly string[] Pages = EditorHelp.Titles;
+    // Keep display order separate from the page IDs used by Help and export errors.
+    private static readonly int[] NavigationOrder = { 0, 8, 1, 2, 3, 4, 5, 7, 10, 9, 6 };
     private static readonly string[] AssetCategories =
     {
         "Surface",
@@ -97,9 +99,10 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
         var delta = Time.unscaledDeltaTime;
         if (delta <= 0)
             return;
-        var orbitalPeriod = OrbitPeriodDays();
-        if (orbitalPeriod > 0)
-            _orbitPhase = (_orbitPhase + 360f * _orbitSimulationSpeed * delta / 60f) % 360f;
+        var rotation = _project.GetRotationSettings();
+        var step = OrbitPreviewTiming.PhaseStep(OrbitPeriodDays(), rotation.SpeedDegreesPerDay, _orbitView == 3,
+            _orbitView == 3 ? _landingSimulationSpeed : _orbitSimulationSpeed, delta);
+        _orbitPhase = (float)((_orbitPhase + step) % 360);
     }
 
     /// <summary>Recalculates the creator's screen bounds so resolution changes take effect immediately.</summary>
@@ -223,6 +226,9 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
         }
     }
 
+    /// <summary>Releases the full-sized orbital scene while the editor is hidden.</summary>
+    private void OnDisable() => DestroyOrbitSystemScene();
+
     /// <summary>Releases textures, previews and runtime rendering objects owned by the editor.</summary>
     private void OnDestroy()
     {
@@ -239,6 +245,7 @@ public sealed partial class WorldCreatorWindow : MonoBehaviour
             Destroy(_orbitPrimarySurfaceTexture);
         if (_orbitSphereMaterial != null)
             Destroy(_orbitSphereMaterial);
+        DestroyOrbitSystemScene();
         if (_orbitSunRenderTexture != null)
         {
             _orbitSunRenderTexture.Release();

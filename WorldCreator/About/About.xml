@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetadata>
   <Name>StationeersWorldCreator</Name>
   <ModID>worldcreator.stationeers</ModID>
   <Author>MAup</Author>
-  <Version>0.2.184</Version>
+  <Version>0.3.000</Version>
   <Description>Unofficial Stationeers World Creation Tool with reusable project assets and modular weather effects.</Description>
 </ModMetadata>
 

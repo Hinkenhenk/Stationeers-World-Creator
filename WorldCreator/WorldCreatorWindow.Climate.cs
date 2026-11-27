@@ -200,6 +200,10 @@ public sealed partial class WorldCreatorWindow
     /// <summary>Reads the orbit used by pressure estimates and rejects unsupported parent-star distance assumptions.</summary>
     private void ReadPressureOrbitSettings()
     {
+        var rotation = _project!.GetRotationSettings();
+        var primary = string.IsNullOrWhiteSpace(_project.PrimaryBodyId) ? "Sun" : _project.PrimaryBodyId;
+        if (rotation.ParentId != primary)
+            throw new InvalidOperationException("Solar seasons for a body orbiting another planet need parent-orbit modelling; its local orbit is not its distance from the star.");
         _pressureOrbitDistance = ReadPressureOrbitValue("SemiMajorAxisAu");
         if (double.IsNaN(_pressureOrbitDistance))
         {
